@@ -17,6 +17,7 @@ import Club from './Components/Club/Club';
 import Event from './Components/Event/Event';
 import ManageRoles from './Components/ManageRoles/ManageRoles';
 import RegisterEvent from './Components/RegisterEvent/RegisterEvent';
+import ErrorPage from './Components/Error/ErrorPage';
 
 function App() {
     return (
@@ -57,7 +58,8 @@ function App() {
                 <Route path="/register-event/:eventName" element={<RegisterEvent />} />
 
                 {/* Fallback Route */}
-                <Route path="*" element={<div>404 - Page Not Found</div>} />
+                <Route path="*" element={<ErrorPage />} />
+                <Route path="/error" element={<ErrorPage />} />
             </Routes>
         </Router>
     );

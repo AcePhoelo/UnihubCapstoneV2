@@ -351,15 +351,24 @@ def delete_club_role(request, club_id, role_id=None):
 
             return Response({"message": "Role deleted successfully"}, status=200)
 
-        # Handle custom roles
-        if role_id.startswith('custom_'):
-            custom_id = int(role_id.replace('custom_', ''))
+        # Handle custom roles - convert role_id to string before checking
+        role_id_str = str(role_id)
+        if role_id_str.startswith('custom_'):
+            custom_id = int(role_id_str.replace('custom_', ''))
             try:
                 membership = ClubMembership.objects.get(id=custom_id, club=club)
                 membership.custom_position = ''  # Clear custom position
                 membership.save()
             except ClubMembership.DoesNotExist:
                 return Response({"error": "Custom role not found"}, status=404)
+        else:
+            # Handle numeric role_id - this is likely a ClubMembership ID
+            try:
+                membership = ClubMembership.objects.get(id=role_id, club=club)
+                membership.custom_position = ''  # Clear custom position
+                membership.save()
+            except ClubMembership.DoesNotExist:
+                return Response({"error": f"Role with ID {role_id} not found"}, status=404)
 
         return Response({"message": "Role deleted successfully"}, status=200)
     except Club.DoesNotExist:

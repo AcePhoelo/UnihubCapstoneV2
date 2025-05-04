@@ -21,6 +21,33 @@ const MyActivity = () => {
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const navigateToClub = (clubId, clubName) => {
+        if (!clubId || clubId === 'undefined') {
+            console.error(`Invalid club ID for ${clubName || 'unknown club'}`);
+            navigate('/error', { 
+                state: { 
+                    errorCode: '500',
+                    errorMessage: 'Club Not Found',
+                    errorDetails: `Cannot load "${clubName || 'this club'}" because the club ID is missing or invalid.`
+                }
+            });
+        } else {
+            navigate(`/club/${clubId}`);
+        }
+    };
+    const navigateToEvent = (event) => {
+        if (!event || !event.name) {
+            navigate('/error', { 
+                state: { 
+                    errorCode: '404',
+                    errorMessage: 'Event Not Found',
+                    errorDetails: 'The requested event information is not available.'
+                }
+            });
+        } else {
+            navigate(`/event/${encodeURIComponent(event.name)}`);
+        }
+    };
 
     // Fetch user data and their clubs/events
     useEffect(() => {
@@ -114,7 +141,7 @@ const MyActivity = () => {
                 
                 // Fetch user's event registrations - using try/catch for better error handling
                 try {
-                    const eventsResponse = await fetch(`http://127.0.0.1:8000/api/event/event_registration/?user_id=${profile.user_id || profile.id}`, {
+                    const eventsResponse = await fetch(`http://127.0.0.1:8000/api/event/event_registration/?user_id=${profile.user_id || profile.id}&student_name=${encodeURIComponent(profile.full_name || '')}`, {
                         headers: {
                             'Authorization': `Bearer ${token}`,
                             'Content-Type': 'application/json',
@@ -304,7 +331,7 @@ const MyActivity = () => {
                             <div
                                 key={index}
                                 className="activity-exlore-club-box"
-                                onClick={() => navigate(`/club/${club.id}`)}
+                                onClick={() => navigateToClub(club.id, club.name)}
                                 style={{ cursor: 'pointer' }}
                             >
                                 <div className="activity-club-card">
@@ -345,7 +372,7 @@ const MyActivity = () => {
                                 <div
                                     key={index}
                                     className="activity-event-card-wrapper"
-                                    onClick={() => navigate(`/event/${event.id}`)}
+                                    onClick={() => navigateToEvent(event)}
                                 >
                                     <div className="activity-event-card">
                                         <img

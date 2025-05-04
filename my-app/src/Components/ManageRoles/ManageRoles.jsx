@@ -303,7 +303,6 @@ const ManageRoles = () => {
         }
     };
 
-    // Delete a role
     const handleDeleteRole = async (index) => {
         const roleToDelete = existingRoles[index];
         if (!roleToDelete || !roleToDelete.id) {
@@ -311,16 +310,26 @@ const ManageRoles = () => {
             return;
         }
     
-        const headers = await getAuthHeaders(); // Await the headers
+        const headers = await getAuthHeaders();
         if (!headers) return;
     
         try {
             // Check if the role is a standard role or a custom role
-            const isCustomRole = roleToDelete.id.toString().startsWith('custom_');
-            const url = isCustomRole
-                ? `http://127.0.0.1:8000/clubs/${club_id}/roles/${roleToDelete.id.replace('custom_', '')}/delete/`
-                : `http://127.0.0.1:8000/clubs/${club_id}/roles/delete/`;
+            const roleId = roleToDelete.id;
+            const isCustomRole = typeof roleId === 'string' && roleId.startsWith('custom_');
+            let url;
+            
+            if (isCustomRole) {
+                // Extract the numeric ID from the custom role ID
+                const numericId = roleId.replace('custom_', '');
+                url = `http://127.0.0.1:8000/clubs/clubs/${club_id}/roles/${numericId}/delete/`;
+            } else {
+                // For standard roles or numeric IDs
+                url = `http://127.0.0.1:8000/clubs/clubs/${club_id}/roles/${roleId}/delete/`;
+            }
     
+            console.log(`Sending DELETE request to: ${url}`);
+            
             const response = await fetch(url, {
                 method: 'DELETE',
                 headers,
@@ -330,7 +339,7 @@ const ManageRoles = () => {
             });
     
             if (!response.ok) {
-                throw new Error('Failed to delete role');
+                throw new Error(`Failed to delete role: ${response.status} ${response.statusText}`);
             }
     
             setExistingRoles(existingRoles.filter((_, i) => i !== index));

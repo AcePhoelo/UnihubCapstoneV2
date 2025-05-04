@@ -18,6 +18,24 @@ const EventDirectory = () => {
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const navigateToClub = (clubId, clubName) => {
+        // If clubId is missing or undefined
+        if (!clubId || clubId === 'undefined') {
+            console.error(`Invalid club ID for ${clubName || 'unknown club'}`);
+            
+            // Navigate to error page with custom error information
+            navigate('/error', { 
+                state: { 
+                    errorCode: '500',
+                    errorMessage: 'Invalid Club Reference',
+                    errorDetails: `Cannot load the club page for "${clubName || 'this club'}" because the club ID is missing or invalid.`
+                }
+            });
+        } else {
+            // Normal navigation to the club page
+            navigate(`/club/${clubId}`);
+        }
+    };
 
     useEffect(() => {
     // Fetch events from the backend
@@ -86,6 +104,10 @@ const EventDirectory = () => {
     }, [studentEmail]);
 
     const handleLogoClick = () => navigate('/club-directory');
+    const handleClubLogoClick = (event, club) => {
+        event.stopPropagation(); // Prevent event bubbling to event card
+        navigateToClub(club?.id, club?.name);
+    };
     const handleClubsClick = () => navigate('/club-directory');
     const handleEventsClick = () => navigate('/event-directory');
     const handleActivityClick = () => navigate('/my-activity');
@@ -215,10 +237,7 @@ const EventDirectory = () => {
                                     </div>
 
                                     {/* Club logo section */}
-                                    <div className="event-club-section" onClick={(e) => {
-                                        e.stopPropagation();
-                                        navigate(`/club/${encodeURIComponent(event.club.name)}`);
-                                    }}>
+                                    <div className="event-club-section" onClick={(e) => handleClubLogoClick(e, event.club)}>
                                         {event.club?.logoUrl ? (
                                             <img src={event.club.logoUrl} alt={event.club.name} className="event-club-icon" />
                                         ) : (

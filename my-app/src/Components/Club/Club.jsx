@@ -11,6 +11,7 @@ import deleteIcon from '../../assets/delete.png'; // Add this import
 import Sidebar from '../CollabSidebar/Sidebar';
 
 // Reusable component for displaying a member category
+
 const MemberCategorySection = ({ title, members, searchQuery, getInitials }) => {
     if (!members || members.length === 0) return null;
 
@@ -54,6 +55,8 @@ const Club = () => {
     // State variables
     const [club, setClub] = useState(null);
     const [loading, setLoading] = useState(true);
+    // Add this to your state variables at the top of the Club component
+    const [clubRoles, setClubRoles] = useState([]);
     const [error, setError] = useState(null);
     const [isUserMember, setIsUserMember] = useState(false);
     const [profilePicture, setProfilePicture] = useState('');
@@ -83,6 +86,20 @@ const Club = () => {
     
     // Check if the logged-in user is the club president
     const [isClubPresident, setIsClubPresident] = useState(false);
+
+    const navigateToProfile = (user) => {
+        if (!user?.id) {
+            navigate('/error', { 
+                state: { 
+                    errorCode: '404',
+                    errorMessage: 'Profile Not Found',
+                    errorDetails: 'The requested profile information is not available.'
+                }
+            });
+        } else {
+            navigate(`/profile/students/${user.id}`);
+        }
+    };
     
     // Update description text when club changes
     useEffect(() => {
@@ -207,45 +224,55 @@ const Club = () => {
     const fetchClubMembers = async () => {
         try {
             const token = localStorage.getItem('access_token');
-            const response = await fetch(`http://127.0.0.1:8000/clubs/clubs/${club_id}/members/`, {
+            
+            // Fetch members
+            const membersResponse = await fetch(`http://127.0.0.1:8000/clubs/clubs/${club_id}/members/`, {
                 method: 'GET',
                 headers: {
                     Authorization: `Bearer ${token}`,
                     'Content-Type': 'application/json',
                 },
             });
-
-            if (response.ok) {
-                const data = await response.json();
-                console.log('Raw members data:', data);
-                
-                const processedMembers = (data.results || []).map(member => {
-                    return {
-                        full_name: member.full_name || 
-                                (member.student && member.student.full_name) || 
-                                member.name || 
-                                'Unknown',
-                        
-                        studentid: member.studentid || 
-                                (member.student && member.student.studentid) || 
-                                member.studentid || 
-                                'No ID',
-                        
-                        position: member.position || 'Member' || 'Executive Committee',
-                        
-                        profile_picture: member.profile_picture || 
-                                        (member.student && member.student.profile_picture) || 
-                                        null
-                    };
-                });
-                
-                console.log('Processed members data:', processedMembers);
+    
+            if (membersResponse.ok) {
+                const membersData = await membersResponse.json();
+                const processedMembers = (membersData.results || []).map(member => ({
+                    full_name: member.full_name || 
+                            (member.student && member.student.full_name) || 
+                            member.name || 
+                            'Unknown',
+                    
+                    studentid: member.studentid || 
+                            (member.student && member.student.studentid) || 
+                            member.studentid || 
+                            'No ID',
+                    
+                    position: member.position || 'Member',
+                    custom_position: member.custom_position || '',
+                    
+                    profile_picture: member.profile_picture || 
+                                    (member.student && member.student.profile_picture) || 
+                                    null
+                }));
                 setMembers(processedMembers);
-            } else {
-                console.error('Failed to fetch club members.');
             }
+            
+            // Fetch roles (including custom ones)
+            const rolesResponse = await fetch(`http://127.0.0.1:8000/clubs/clubs/${club_id}/roles/`, {
+                method: 'GET',
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                },
+            });
+            
+            if (rolesResponse.ok) {
+                const rolesData = await rolesResponse.json();
+                setClubRoles(rolesData.roles || []);
+            }
+            
         } catch (err) {
-            console.error('Error fetching club members:', err);
+            console.error('Error fetching club data:', err);
         }
     };
 
@@ -693,13 +720,13 @@ const Club = () => {
                         </div>
                         <div className="club-banner-right">
                             <div className="club-leader-info">
-                                <img
-                                    src={club.president?.profile_picture || '/default-profile.png'}
-                                    alt="Leader"
-                                    className="leader-photo"
-                                    onClick={() => club.president?.id && navigate(`/profile/students/${club.president.id}`)}
-                                    style={{ cursor: 'pointer' }}
-                                />
+                                    <img
+                                        src={club.president?.profile_picture || '/default-profile.png'}
+                                        alt="Leader"
+                                        className="leader-photo"
+                                        onClick={() => navigateToProfile(club.president)}
+                                        style={{ cursor: 'pointer' }}
+                                    />
                                 <div className="club-leader-name">
                                     {(() => {
                                         const fullName = club.president?.full_name || 'No Leader';
@@ -872,61 +899,45 @@ const Club = () => {
                             </div>
                             <div className="members-panel-header-border"></div>
                             <div className="members-body">
-                                <div className="role-section">
+                            {/* Standard roles first (for consistent ordering) */}
+                            <MemberCategorySection
+                                title="Leader"
+                                members={members.filter(m => m.position === 'President')}
+                                searchQuery={searchQuery}
+                                getInitials={getInitials}
+                            />
+                            
+                            <MemberCategorySection
+                                title="Members"
+                                members={members.filter(m => m.position === 'Member' && !m.custom_position)}
+                                searchQuery={searchQuery}
+                                getInitials={getInitials}
+                            />
+                            
+                            {/* Dynamic rendering for all other roles from the API */}
+                            {clubRoles
+                                .filter(role => !['President', 'Member'].includes(role.name)) // Skip the ones we've already shown
+                                .map(role => (
                                     <MemberCategorySection
-                                        title="Leader"
-                                        members={members.filter(m => m.position === 'President')}
+                                        key={role.id}
+                                        title={role.name}
+                                        members={members.filter(m => {
+                                            // Match standard positions OR custom positions
+                                            return m.position === role.name || m.custom_position === role.name;
+                                        })}
                                         searchQuery={searchQuery}
                                         getInitials={getInitials}
                                     />
-                                </div>
-                                <div className="role-section">
-                                    <MemberCategorySection
-                                        title="Members"
-                                        members={members.filter(m => m.position === 'Member')}
-                                        searchQuery={searchQuery}
-                                        getInitials={getInitials}
-                                    />
-                                </div>
-                                <div className="role-section">
-                                    <MemberCategorySection
-                                        title="Executive Committee"
-                                        members={members.filter(m => m.position === 'Executive Committee')}
-                                        searchQuery={searchQuery}
-                                        getInitials={getInitials}
-                                    />
-                                </div>
-                                <div className="role-section">
-                                    <MemberCategorySection
-                                        title="Vice President"
-                                        members={members.filter(m => m.position === 'Vice President')}
-                                        searchQuery={searchQuery}
-                                        getInitials={getInitials}
-                                    />
-                                </div>
-                                <div className="role-section">
-                                    <MemberCategorySection
-                                        title="Secretary"
-                                        members={members.filter(m => m.position === 'Secretary')}
-                                        searchQuery={searchQuery}
-                                        getInitials={getInitials}
-                                    />
-                                </div>
-                                <div className="role-section">
-                                    <MemberCategorySection
-                                        title="Treasurer"
-                                        members={members.filter(m => m.position === 'Treasurer')}
-                                        searchQuery={searchQuery}
-                                        getInitials={getInitials}
-                                    />
-                                </div>
-                                {members.filter(m => !searchQuery ||
-                                    (m.full_name && m.full_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-                                    (m.studentid && String(m.studentid).includes(searchQuery))
-                                ).length === 0 && (
-                                    <div className="no-results">No members found matching your search.</div>
-                                )}
-                            </div>
+                                ))
+                            }
+                            
+                            {members.filter(m => !searchQuery ||
+                                (m.full_name && m.full_name.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                                (m.studentid && String(m.studentid).includes(searchQuery))
+                            ).length === 0 && (
+                                <div className="no-results">No members found matching your search.</div>
+                            )}
+                        </div>
                         </div>
                     </div>
                 </>
