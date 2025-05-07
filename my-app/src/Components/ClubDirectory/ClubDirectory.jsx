@@ -8,28 +8,21 @@ import facebook from '../../assets/facebook.png';
 import instagram from '../../assets/instagram.png';
 import youtube from '../../assets/youtube.png';
 import linkedin from '../../assets/linkedin.png';
+import { useAuth } from '../../contexts/AuthContext';
 
 const ClubDirectory = () => {
     const navigate = useNavigate();
     const location = useLocation();
-    const [studentName, setStudentName] = useState('');
-    const [profilePicture, setProfilePicture] = useState('');
+    const { user, refreshUserData } = useAuth();
+    const studentName = user?.full_name || 'Unknown Student';
+    const profilePicture = user?.profile_picture || '';
     const [clubs, setClubs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    const isGuest = localStorage.getItem('isGuest') === 'true';
+    const isGuest = user?.isGuest || false;
 
     useEffect(() => {
-        // Fetch profile data from localStorage
-        const profile = JSON.parse(localStorage.getItem('profile'));
-        if (profile) {
-            setStudentName(profile.full_name || 'Unknown Student');
-            setProfilePicture(profile.profile_picture || '');
-        } else {
-            setStudentName('Unknown Student');
-            setProfilePicture('');
-        }
     
         // Fetch club data from the backend
         const fetchClubs = async () => {

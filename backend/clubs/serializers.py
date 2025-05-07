@@ -1,7 +1,5 @@
 from rest_framework import serializers
 from .models import Club, ClubMembership
-from user_profile.models import Student
-from user_profile.serializers import StudentSerializer
 from colorthief import ColorThief
 from django.core.cache import cache
 import os
@@ -9,36 +7,28 @@ import colorsys
 
 
 class ClubListSerializer(serializers.ModelSerializer):
+    """
+    Simplified serializer for listing clubs.
+    """
     class Meta:
         model = Club
-        fields = ['id', 'name']  # Only include the fields needed for the dropdown
+        fields = ['id', 'name', 'description', 'logo', 'banner']
 
-class StudentSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Student
-        fields = ['id', 'studentid', 'full_name', 'email', 'profile_picture']
-
-# class MemberSerializer(serializers.ModelSerializer):
-#     """
-#     Serializer for the Member model.
-#     Includes details about the student and their position in the club.
-#     """
-#     student = StudentSerializer()  # Nested serializer to include student details
-
-#     class Meta:
-#         model = Member
-#         fields = ['id', 'student', 'position', 'custom_position']
 
 class ClubMembershipSerializer(serializers.ModelSerializer):
-    student = StudentSerializer()  # Include student details
+    student = serializers.SerializerMethodField()  # Use lazy import for StudentSerializer
 
     class Meta:
         model = ClubMembership
         fields = ['id', 'student', 'position', 'custom_position']
 
+    def get_student(self, obj):
+        from user_profile.serializers import StudentSerializer  # Lazy import
+        return StudentSerializer(obj.student, context=self.context).data
+
 
 class ClubSerializer(serializers.ModelSerializer):
-    president = StudentSerializer(read_only=True)
+    president = serializers.SerializerMethodField()  # Use lazy import for StudentSerializer
     members = ClubMembershipSerializer(source='clubmembership_set', many=True, read_only=True)
     dominant_color = serializers.SerializerMethodField()
     shadow_color = serializers.SerializerMethodField()
@@ -46,6 +36,16 @@ class ClubSerializer(serializers.ModelSerializer):
     class Meta:
         model = Club
         fields = ['id', 'name', 'description', 'president', 'logo', 'banner', 'members', 'dominant_color', 'shadow_color']
+
+    def get_president(self, obj):
+        """
+        Use StudentSerializer to fetch the president's profile data.
+        """
+        if obj.president:
+            from user_profile.serializers import StudentSerializer  # Lazy import
+            request = self.context.get('request')  # Pass the request context for absolute URLs
+            return StudentSerializer(obj.president, context={'request': request}).data
+        return None
 
     def get_dominant_color(self, obj):
         """

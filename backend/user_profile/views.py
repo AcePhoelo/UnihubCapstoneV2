@@ -40,7 +40,16 @@ def student_detail(request, studentid):
                 }
                 for club in student.clubsjoined.all()
             ],
-            "leadership_clubs": list(student.leadership_clubs.values_list('name', flat=True)),
+            "leadership_clubs": [
+                {
+                    "id": club.id,
+                    "name": club.name,
+                    "description": club.description,
+                    "banner": club.banner.url if club.banner else None,
+                    "logo": club.logo.url if club.logo else None
+                }
+                for club in student.leadership_clubs.all()
+            ],
             "profile_picture": student.profile_picture.url if student.profile_picture else None,
         })
     except Student.DoesNotExist:

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Login.css';
+import { useAuth } from '../../contexts/AuthContext';
 
 const Login = () => {
     const navigate = useNavigate();
@@ -8,13 +9,10 @@ const Login = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const { login, loginAsGuest } = useAuth();
 
     const handleGuestClick = () => {
-        // Clear previous user data first
-        localStorage.clear();
-        // Set guest mode
-        localStorage.setItem('isGuest', 'true');
-        
+        loginAsGuest();
         const eventName = "Board Game Tournament";
         window.open("/feedback/" + encodeURIComponent(eventName), '_blank');
     };
@@ -27,48 +25,12 @@ const Login = () => {
     
         setIsLoading(true);
         try {
-            // Clear previous user data before login
-            localStorage.clear();
+            const result = await login(student_id, password);
             
-            // Post to the /api/token/ endpoint to receive access and refresh tokens.
-            const response = await fetch('http://127.0.0.1:8000/api/token/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ username: student_id, password }),
-            });
-    
-            const data = await response.json();
-            
-            if (response.ok && data.access) {
-                // Store the tokens
-                localStorage.setItem('access_token', data.access);
-                localStorage.setItem('refresh_token', data.refresh);
-                localStorage.setItem('studentID', student_id); // Use studentID as the key for consistency
-                localStorage.setItem('isGuest', 'false');
-    
-                // Fetch the profile data using the access token
-                const accessToken = data.access;
-                const profileResponse = await fetch('http://127.0.0.1:8000/profile/profile/', {
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${accessToken}`,
-                        'Content-Type': 'application/json',
-                    },
-                });
-    
-                const profileData = await profileResponse.json();
-    
-                if (profileResponse.ok) {
-                    // Store the profile data
-                    localStorage.setItem('profile', JSON.stringify(profileData));
-                    navigate('/club-directory');
-                } else {
-                    setError("Failed to fetch profile data. Please try again.");
-                }
+            if (result.success) {
+                navigate('/club-directory');
             } else {
-                setError("Login was unsuccessful. Please check your Curtin ID or password.");
+                setError(result.message || "Login was unsuccessful. Please check your Curtin ID or password.");
             }
         } catch (error) {
             console.error("Login error:", error);

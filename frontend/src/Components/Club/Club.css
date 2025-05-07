@@ -1,0 +1,891 @@
+﻿﻿ /* Club.css */
+/* PAGE */
+.club-page {
+    background: #FAFAFA;
+    min-height: 100vh;
+}
+
+/* EDIT CLUB */
+.club-edit-buttons {
+    display: flex;
+    gap: 20px;
+    position: absolute;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2;
+}
+
+.club-banner-button.save-edit,
+.club-banner-button.cancel-edit {
+    height: 45px;
+    width: 126px;
+    color: #ffffff;
+    border-radius: 6px;
+    font-size: 20px;
+    font-weight: 450;
+    font-family: 'Effra', sans-serif;
+    cursor: pointer;
+    border: none;
+}
+
+.club-banner-button.save-edit {
+    width: 126px;
+    background: #2074ac;
+}
+
+.club-banner-button.cancel-edit {
+    width: 126px;
+    background: #cf2424;
+}
+
+.change-club-banner-button {
+    height: 45px;
+    width: 252px;
+    color: #ffffff;
+    background: #666666;
+    border-radius: 6px;
+    font-size: 20px;
+    font-weight: 450;
+    font-family: 'Effra', sans-serif;
+    cursor: pointer;
+    border: none;
+}
+
+.edit-club-name-input {
+    width: 1024px;
+    font-size: 36px;
+    font-weight: 450;
+    text-align: center;
+    background: transparent;
+    color: white;
+    border: none;
+    outline: none;
+    font-family: 'Effra', sans-serif;
+}
+
+.change-club-banner-button {
+    height: 45px;
+    width: 252px;
+    color: #ffffff;
+    background: #666666;
+    border-radius: 6px;
+    font-size: 20px;
+    font-weight: 450;
+    font-family: 'Effra', sans-serif;
+    cursor: pointer;
+    border: none;
+}
+
+/* CLUB BODY */
+.club-banner-wrapper {
+    position: relative;
+    width: 100%;
+    height: 576px;
+}
+
+.club-banner {
+    position: relative;
+    width: 100%;
+    height: 576px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.banner-overlay {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 1024px;
+    height: 100%;
+    transform: translateX(-50%);
+    z-index: 2;
+    mix-blend-mode: multiply;
+}
+
+.club-banner-img {
+    height: 576px;
+    width: 1024px;
+    object-fit: contain;
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1;
+    pointer-events: none;
+}
+
+.club-banner-content {
+    position: relative;
+    width: 100%;
+    max-width: 1024px;
+    height: 576px;
+    margin: 0 auto;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.club-banner-center {
+    position: static !important;
+    top: auto !important;
+    left: auto !important;
+    transform: none !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    row-gap: 12px;
+}
+
+.club-logo {
+    width: 250px;
+    height: 250px;
+    object-fit: cover;
+    border-radius: 50%;
+    box-shadow: 0px 2px 8px rgba(0,0,0,0.2);
+}
+
+.club-page-name {
+    color: white;
+    font-size: 36px;
+    font-weight: 650;
+    font-family: 'Effra', sans-serif;
+    width: 500px;
+    text-align: center;
+    text-shadow: 0px 3px 0px rgba(0, 0, 0, 0.6);
+}
+
+.club-banner-buttons {
+    display: flex;
+    gap: 12px;
+    margin: 0;
+}
+
+.club-banner-button {
+    position: static;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    height: 45px;
+    width: 200px;
+    padding: 0 16px;
+    color: #ffffff;
+    border-radius: 6px;
+    font-size: 20px;
+    font-weight: 450;
+    font-family: 'Effra', sans-serif;
+    cursor: pointer;
+    border: none;
+    box-shadow: 2px 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+    .club-banner-button.edit-club-button {
+        background-color: #2074AC;
+    }
+
+.club-banner-left {
+    position: absolute;
+    bottom: 50px;
+    left: -200px;
+}
+
+.club-banner-right {
+    position: absolute;
+    bottom: 50px;
+    right: -200px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 80px;
+}
+
+.club-leader-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.leader-photo {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 0;
+}
+
+.club-leader-name {
+    color: white;
+    font-size: 20px;
+    font-weight: 450;
+    font-family: 'Effra', sans-serif;
+    text-align: center;
+}
+
+.leader-firstname,
+.leader-surname {
+    font-size: 20px;
+    font-family: 'Effra', sans-serif;
+    line-height: 1.2;
+}
+
+.leader-surname {
+    text-transform: uppercase;
+}
+
+.club-members-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+}
+
+.club-members-title {
+    color: white;
+    font-size: 20px;
+    font-weight: 450;
+    font-family: 'Effra', sans-serif;
+    text-align: center;
+}
+
+.collaboration-icon {
+    width: 92px;
+    height: 59px;
+    object-fit: contain;
+}
+
+.members-icon {
+    width: 68px;
+    height: 68px;
+    object-fit: contain;
+}
+
+.club-collaboration-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+}
+
+.club-collaboration-title {
+    color: white;
+    font-size: 20px;
+    font-weight: 450;
+    font-family: 'Effra', sans-serif;
+    text-align: center;
+}
+
+.club-delete-icon {
+    object-fit: contain;
+    background: none;
+    box-shadow: none;
+}
+
+.club-delete-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+}
+
+.club-delete-title {
+    color: white;
+    font-size: 20px;
+    font-weight: 450;
+    font-family: 'Effra', sans-serif;
+    text-align: center;
+}
+
+/* DELETE POP-UP */
+.delete-popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.delete-popup-box {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.3);
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    position: relative;
+}
+
+.delete-popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.delete-popup-title {
+    font-weight: 650;
+    font-size: 20px;
+    font-family: 'Effra', sans-serif;
+    margin-bottom: 1rem;
+}
+
+.delete-popup-body {
+    font-weight: 500;
+    font-size: 18px;
+    font-family: 'Effra', sans-serif;
+}
+
+.delete-popup-close {
+    position: absolute;
+    top: 1px;
+    right: 12px;
+    font-size: 28px;
+    font-weight: bold;
+    color: #555;
+    cursor: pointer;
+    z-index: 1000;
+}
+
+.delete-popup-input {
+    width: 100%;
+    padding: 0.6rem;
+    margin-bottom: 1rem;
+    border: 1px solid #999999;
+    border-radius: 6px;
+}
+
+.confirm-delete-button {
+    background-color: #cf2424;
+    color: white;
+    border: none;
+    padding: 0.6rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    font-weight: 500;
+    font-family: 'Effra', sans-serif;
+}
+
+    .confirm-delete-button:hover {
+        background-color: #a91d1d;
+    }
+
+/* CLUB INFORMATION */
+.club-details {
+    padding: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 40px;
+}
+
+.club-description-container {
+    width: 1024px;
+}
+
+.club-description-header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 16px;
+    width: 1024px;
+}
+
+.club-description-title {
+    text-align: left;
+    color: #000000;
+    font-size: 36px;
+    font-weight: 500;
+    margin-bottom: 12px;
+    font-family: 'Effra', sans-serif;
+}
+
+.club-description {
+    width: 100%;
+    white-space: pre-wrap;
+    font-size: 16px;
+    margin: 0;
+    font-family: 'Proxima Nova', sans-serif;
+}
+
+/* EDIT DESCRIPTION */
+.edit-club-description {
+    background: transparent;
+    border: none;
+    outline: none;
+    padding: 0;
+    cursor: pointer;
+    position: relative;
+    top: -10px;
+}
+
+    .edit-club-description img {
+        height: 18px;
+        width: 18px;
+        object-fit: contain;
+    }
+
+.edit-club-description-textarea {
+    width: 100%;
+    min-height: 250px;
+    padding: 8px 12px;
+    font-size: 16px;
+    font-family: 'Effra', sans-serif;
+    border: 1px solid #999999;
+    border-radius: 6px;
+    box-sizing: border-box;
+    margin-bottom: 8px;
+    resize: none;
+}
+
+.club-description-char-counter {
+    position: absolute;
+    bottom: 28px;
+    right: 14px;
+    font-size: 14px;
+    color: #666;
+    background: rgba(255, 255, 255, 0.7);
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+    .club-description-char-counter.red {
+        color: red;
+        font-weight: bold;
+    }
+
+.edit-club-description-controls {
+    display: flex;
+    gap: 12px;
+}
+
+.save-club-description-button,
+.cancel-club-description-button {
+    padding: 6px 12px;
+    font-size: 16px;
+    font-family: 'Effra', sans-serif;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 8px;
+}
+
+.save-club-description-button {
+    background: #2074AC;
+    color: #ffffff;
+}
+
+.cancel-club-description-button {
+    background: #CF2424;
+    color: #ffffff;
+}
+
+/* CLUB EVENTS */
+.club-event-header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 16px;
+    width: 1024px;
+}
+
+.create-event-button {
+    background-color: #2074AC;
+    color: #ffffff;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    font-size: 24px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+    transform: translateY(-5px);
+}
+
+    .create-event-button:hover {
+        background-color: #155a8a;
+    }
+
+.plus-icon {
+    display: inline-block;
+    transform: translateY(-2px);
+}
+
+.club-event-container {
+    width: 1024px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.club-event-title {
+    color: #000000;
+    font-size: 36px;
+    font-weight: 500;
+    text-align: left;
+    margin-bottom: 12px;
+    font-family: 'Effra', sans-serif;
+}
+
+.club-events-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    align-items: center;
+}
+
+.club-event-card-wrapper {
+    width: 1024px;
+    margin: 0 auto;
+}
+
+.club-event-card {
+    display: flex;
+    align-items: stretch;
+    border-radius: 16px;
+    width: 100%;
+    height: 225px;
+    border: 1px solid #999999;
+    background-color: #FAFAFA;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.club-event-card-banner {
+    width: 400px;
+    height: 225px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.club-event-card-content {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+}
+
+.club-event-card-name {
+    color: #000000;
+    font-size: 20px;
+    font-weight: 450;
+    margin: 0;
+    margin-bottom: 8px;
+    font-family: 'Effra', sans-serif;
+}
+
+.club-event-card-description {
+    color: #000000;
+    font-size: 16px;
+    font-weight: 450;
+    margin: 0;
+    margin-bottom: 0;
+    font-family: 'Proxima Nova', sans-serif;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    text-overflow: ellipsis;
+}
+
+.club-spacer {
+    flex-grow: 1;
+}
+
+.club-event-card-meta {
+    color: #999999;
+    font-size: 16px;
+    margin: 0;
+    font-family: 'Proxima Nova', sans-serif;
+}
+
+/* MEMBERS PANEL */
+.members-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    height: 100vh;
+    width: 90vw;
+    background-color: #FAFAFA;
+    z-index: 999;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.6);
+    z-index: 998;
+}
+
+.members-panel-content {
+    padding: 24px;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+.close-members-panel {
+    margin-top: auto;
+    align-self: flex-end;
+    margin: 16px;
+    background: #CF2424;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* MEMBERS CONTENT */
+.members-container {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 90vw;
+    height: 100vh;
+    display: flex;
+    z-index: 999;
+}
+
+.exit-col {
+    width: 48px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    pointer-events: all;
+    margin-right: -21px;
+}
+
+.exit-icon {
+    margin-top: 60px;
+    cursor: pointer;
+    z-index: 1001;
+}
+
+.panel-col {
+    flex: 1;
+    position: relative;
+    background: #fff;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    overflow: auto;
+}
+
+.members-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: sticky;
+    top: 0;
+    background-color: #FAFAFA;
+    height: 80px;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    transform: translateY(-20px);
+    gap: 24px;
+}
+
+.members-panel-header-border {
+    position: fixed;
+    top: 80px;
+    left: 0;
+    width: 100%;
+    max-width: 100%;
+    height: 3px;
+    background-color: #999999;
+    z-index: 999;
+    pointer-events: none;
+}
+
+.members-header-inner {
+    max-width: 1600px;
+    width: 100%;
+    padding: 0 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+}
+
+.members-header-left {
+    flex-shrink: 0;
+    margin-top: 5px;
+}
+
+.members-header-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    flex-grow: 1;
+}
+
+.members-title {
+    font-size: 20px;
+    font-weight: 450;
+    font-family: 'Effra', sans-serif;
+    color: black;
+}
+
+.total-members {
+    font-size: 20px;
+    font-weight: 450;
+    font-family: 'Effra', sans-serif;
+    color: black;
+}
+
+.search-bar-wrapper {
+    width: 575px;
+    height: 45px;
+    display: flex;
+    border: 1px solid #999999;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.members-search-input {
+    width: 460px;
+    height: 100%;
+    padding: 0 12px;
+    font-size: 20px;
+    border: none;
+    outline: none;
+    font-family: 'Proxima Nova', sans-serif;
+    box-sizing: border-box;
+}
+
+.members-search-button {
+    width: 115px;
+    height: 100%;
+    background-color: #EEC010;
+    color: #000;
+    font-size: 20px;
+    font-weight: 450;
+    font-family: 'Effra', sans-serif;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.manage-roles {
+    background: none;
+    border: none;
+    font-size: 20px;
+    font-weight: 450;
+    font-family: 'Effra', sans-serif;
+    color: black;
+    cursor: pointer;
+}
+
+.members-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 24px;
+    margin-top: 60px;
+}
+
+.role-section {
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    flex-direction: column;
+    gap: 0px;
+}
+
+.role-title {
+    font-size: 20px;
+    margin-bottom: 12px;
+    text-align: left;
+    font-family: 'Effra', sans-serif;
+}
+
+.person-card {
+    width: 100%;
+    max-width: 900px;
+    height: 100px;
+    border-top: 1px solid #999999;
+    border-left: 1px solid #999999;
+    border-right: 1px solid #999999;
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    box-sizing: border-box;
+    gap: 24px;
+    background: #FAFAFA;
+}
+
+.role-section .person-card:last-child {
+    border-bottom: 1px solid #999999;
+}
+
+.person-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: #E9ECEF;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+    font-weight: 450;
+    font-family: 'Effra', sans-serif;
+    color: black;
+}
+
+.person-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.person-name {
+    font-size: 18px;
+    font-weight: 450;
+    font-family: 'Effra', sans-serif;
+}
+
+.person-id {
+    font-size: 14px;
+    font-family: 'Proxima Nova', sans-serif;
+    font-weight: 450;
+    color: #777;
+}
+
+/* ANIMATIONS */
+.club-event-card-wrapper {
+    border-radius: 16px;
+    overflow: visible;
+    transition: transform 0.3s ease-out, box-shadow 0.3s ease-out;
+}
+
+    .club-event-card-wrapper:hover {
+        transform: scale(1.03);
+        box-shadow: 0 8px 20px rgba(173,216,230,0.3);
+    }

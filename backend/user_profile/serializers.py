@@ -1,22 +1,25 @@
 from rest_framework import serializers
 from .models import Student
-from clubs.models import Club
 
-class ClubSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Club
-        fields = ['id', 'name', 'description', 'president', 'logo']
 
 class StudentSerializer(serializers.ModelSerializer):
-    profile_picture = serializers.SerializerMethodField()  # Add this to return the full URL
-    clubsjoined = ClubSerializer(many=True, read_only=True)
-    leadership_clubs = ClubSerializer(many=True, read_only=True)
-    
+    profile_picture = serializers.SerializerMethodField()
+    clubsjoined = serializers.SerializerMethodField()  # Use SerializerMethodField to avoid recursion
+    leadership_clubs = serializers.SerializerMethodField()  # Use SerializerMethodField to avoid recursion
+
     def get_profile_picture(self, obj):
         request = self.context.get('request')
         if obj.profile_picture:
             return request.build_absolute_uri(obj.profile_picture.url) if request else obj.profile_picture.url
         return None
+
+    def get_clubsjoined(self, obj):
+        from clubs.serializers import ClubListSerializer  # Lazy import
+        return ClubListSerializer(obj.clubsjoined.all(), many=True, context=self.context).data
+
+    def get_leadership_clubs(self, obj):
+        from clubs.serializers import ClubListSerializer  # Lazy import
+        return ClubListSerializer(obj.leadership_clubs.all(), many=True, context=self.context).data
 
     class Meta:
         model = Student
@@ -30,4 +33,3 @@ class StudentSerializer(serializers.ModelSerializer):
             'clubsjoined',
             'leadership_clubs',
         ]
-        depth = 1

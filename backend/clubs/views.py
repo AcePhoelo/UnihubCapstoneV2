@@ -6,7 +6,7 @@ from .models import Club, ClubMembership
 from .forms import UpdatePositionForm
 from user_profile.models import Student
 from .serializers import ClubSerializer, ClubMembershipSerializer, ClubListSerializer
-
+from user_profile.serializers import StudentSerializer
 class MemberPagination(PageNumberPagination):
     page_size = 10
 
@@ -163,7 +163,8 @@ def create_club(request):
     Create a new club with members.
     """
     data = request.POST
-    logo = request.FILES.get('logo')  # Get the uploaded file
+    logo = request.FILES.get('logo')  # Get the uploaded logo file
+    banner = request.FILES.get('banner')  # Get the uploaded banner file
 
     # Debugging: Log the received data
     print("Received data:", data)
@@ -190,7 +191,8 @@ def create_club(request):
     club = Club.objects.create(
         name=data['name'],
         description=data['description'],
-        logo=logo,  # Save the uploaded file
+        logo=logo,  # Save the uploaded logo file
+        banner=banner,  # Save the uploaded banner file
         president=request.user.student  # Assuming the logged-in user is the president
     )
 

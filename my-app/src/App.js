@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-d
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 // Component Imports
+import {AuthProvider} from './contexts/AuthContext';
 import Login from './Components/LogIn/Login';
 import Feedback from './Components/Feedback/Feedback';
 import FeedbackReview from './Components/FeedbackReview/FeedbackReview';
@@ -21,8 +22,9 @@ import ErrorPage from './Components/Error/ErrorPage';
 
 function App() {
     return (
-        <Router>
-            <Routes>
+        <AuthProvider>
+            <Router>
+                <Routes>
                 {/* Redirect to Login */}
                 <Route path="/" element={<Navigate to="/login" replace />} />
 
@@ -62,6 +64,7 @@ function App() {
                 <Route path="/error" element={<ErrorPage />} />
             </Routes>
         </Router>
+    </AuthProvider>
     );
 }
 

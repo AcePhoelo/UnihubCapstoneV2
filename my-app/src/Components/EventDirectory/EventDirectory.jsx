@@ -8,16 +8,21 @@ import facebook from '../../assets/facebook.png';
 import instagram from '../../assets/instagram.png';
 import youtube from '../../assets/youtube.png';
 import linkedin from '../../assets/linkedin.png';
+import { useAuth } from '../../contexts/AuthContext';
 
 const EventDirectory = () => {
     const navigate = useNavigate();
+    const { user, refreshUserData } = useAuth();
     const location = useLocation();
-    const [studentName, setStudentName] = useState('');
-    const [studentID, setStudentID] = useState('');
-    const studentEmail = localStorage.getItem('studentEmail');
     const [events, setEvents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    
+    // Remove these separate state variables
+    // const [studentName, setStudentName] = useState('');
+    // const [studentID, setStudentID] = useState('');
+    // const studentEmail = localStorage.getItem('studentEmail');
+
     const navigateToClub = (clubId, clubName) => {
         // If clubId is missing or undefined
         if (!clubId || clubId === 'undefined') {
@@ -38,70 +43,76 @@ const EventDirectory = () => {
     };
 
     useEffect(() => {
-    // Fetch events from the backend
-    const fetchEvents = async () => {
-        try {
-            const token = localStorage.getItem('access_token'); // Get the JWT token from localStorage
-            const response = await fetch('http://127.0.0.1:8000/api/event/add_event/', {
-                method: 'GET',
-                headers: {
-                    Authorization: `Bearer ${token}`, // Include the Authorization header
-                    'Content-Type': 'application/json',
-                },
-            });
+        // Fetch events from the backend
+        const fetchEvents = async () => {
+            try {
+                const token = localStorage.getItem('access_token');
+                const response = await fetch('http://127.0.0.1:8000/api/event/add_event/', {
+                    method: 'GET',
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    },
+                });
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const data = await response.json();
-            const formattedEvents = data.map(event => ({
-                id: event.id,
-                name: event.name,
-                description: event.description,
-                imageUrl: event.banner, // Assuming `banner` is the field for the event image
-                date: event.date,
-                time: event.time,
-                place: event.location,
-                unit: event.unit || '', // Add `unit` if available in the backend
-                club: {
-                    name: event.club_details.name,
-                    logoUrl: event.club_details.logo, // Assuming `logo` is the field for the club logo
-                },
-            }));
-            setEvents(formattedEvents);
-        } catch (error) {
-            console.error("Error fetching events:", error);
-            setError("Failed to load events.");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    fetchEvents();
-}, []);
-
-    useEffect(() => {
-        if (studentEmail) {
-            const fetchStudentData = async () => {
-                try {
-                    const response = await fetch(`http://127.0.0.1:8000/api/profile/?email=${studentEmail}`);
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    const data = await response.json();
-                    setStudentName(data.full_name || "Student");
-                    setStudentID(data.studentid || "Unknown ID");
-                } catch (error) {
-                    console.error("Error fetching student data:", error);
-                    setStudentName("Unknown Student");
-                    setStudentID("Unknown ID");
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
-            };
 
-            fetchStudentData();
+                const data = await response.json();
+                const formattedEvents = data.map(event => ({
+                    id: event.id,
+                    name: event.name,
+                    description: event.description,
+                    imageUrl: event.banner,
+                    date: event.date,
+                    time: event.time,
+                    place: event.location,
+                    unit: event.unit || '',
+                    club: {
+                        name: event.club_details.name,
+                        logoUrl: event.club_details.logo,
+                        id: event.club_details.id, // Make sure to include the club ID
+                    },
+                }));
+                setEvents(formattedEvents);
+            } catch (error) {
+                console.error("Error fetching events:", error);
+                setError("Failed to load events.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchEvents();
+        
+        // If we don't have user data yet, refresh it
+        if (!user && !localStorage.getItem('isGuest')) {
+            refreshUserData();
         }
-    }, [studentEmail]);
+    }, [refreshUserData, user]);
+
+    // useEffect(() => {
+    //     if (studentEmail) {
+    //         const fetchStudentData = async () => {
+    //             try {
+    //                 const response = await fetch(`http://127.0.0.1:8000/api/profile/?email=${studentEmail}`);
+    //                 if (!response.ok) {
+    //                     throw new Error(`HTTP error! status: ${response.status}`);
+    //                 }
+    //                 const data = await response.json();
+    //                 setStudentName(data.full_name || "Student");
+    //                 setStudentID(data.studentid || "Unknown ID");
+    //             } catch (error) {
+    //                 console.error("Error fetching student data:", error);
+    //                 setStudentName("Unknown Student");
+    //                 setStudentID("Unknown ID");
+    //             }
+    //         };
+
+    //         fetchStudentData();
+    //     }
+    // }, [studentEmail]);
 
     const handleLogoClick = () => navigate('/club-directory');
     const handleClubLogoClick = (event, club) => {
@@ -115,12 +126,13 @@ const EventDirectory = () => {
     const handleCalendarClick = () => navigate('/calendar');
 
     const getInitials = (fullName) => {
+        if (!fullName) return '';
         const names = fullName.trim().split(' ');
         const initials = names[0]?.charAt(0).toUpperCase() + (names[1]?.charAt(0).toUpperCase() || '');
         return initials;
     };
 
-    const isGuest = localStorage.getItem('isGuest') === 'true';
+    const isGuest = user?.isGuest || localStorage.getItem('isGuest') === 'true';
 
     return (
         <div className="event-directory-page">
@@ -154,15 +166,21 @@ const EventDirectory = () => {
                     )}
                 </div>
                 <div className="navbar-right">
-                    <div
+                <div
                         className="profile-icon"
                         onClick={() => navigate(isGuest ? '/login' : '/profile')}
                         style={{
                             cursor: 'pointer',
-                            fontSize: isGuest ? '14px' : '24px'
+                            fontSize: isGuest ? '14px' : '24px',
+                            backgroundImage: user?.profile_picture ? `url(${user.profile_picture})` : 'none',
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
                         }}
                     >
-                        {isGuest ? 'LOGIN' : getInitials(studentName || "John BROWN")}
+                        {isGuest ? 'LOGIN' : (!user?.profile_picture && getInitials(user?.full_name || ""))}
                     </div>
                     <img src={calendar} alt="Calendar" className="calendar-icon"
                         onClick={handleCalendarClick}
