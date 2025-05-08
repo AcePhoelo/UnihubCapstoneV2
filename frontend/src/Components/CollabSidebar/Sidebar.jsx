@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './Sidebar.css';
+import { useNotification } from '../Notification/Context';
 
 const Sidebar = ({ isOpen, onClose, presidentEmail }) => {
   const [animate, setAnimate] = useState(false);
@@ -8,6 +9,7 @@ const Sidebar = ({ isOpen, onClose, presidentEmail }) => {
     yourEmail: '',
     shortMessage: '',
   });
+  const { success: success2, error: error2 } = useNotification();
   const [clubs, setClubs] = useState([]);
 
   useEffect(() => {
@@ -67,14 +69,14 @@ const Sidebar = ({ isOpen, onClose, presidentEmail }) => {
       });
 
       if (response.ok) {
-        alert('Collaboration request sent successfully!');
+        success2('Collaboration request sent successfully!');
         onClose();
       } else {
-        alert('Failed to send collaboration request.');
+        error2('Failed to send collaboration request.');
       }
     } catch (error) {
       console.error('Error sending collaboration request:', error);
-      alert('An error occurred while sending the request.');
+      error2('An error occurred while sending the request.');
     }
   };
 

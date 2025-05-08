@@ -1,7 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
-
+import { NotificationProvider } from './Components/Notification/Context';
 // Component Imports
 import Login from './Components/LogIn/Login';
 import Feedback from './Components/Feedback/Feedback';
@@ -22,6 +22,7 @@ import ErrorPage from './Components/Error/ErrorPage';
 function App() {
     return (
         <Router>
+            <NotificationProvider>
             <Routes>
                 {/* Redirect to Login */}
                 <Route path="/" element={<Navigate to="/login" replace />} />
@@ -61,6 +62,7 @@ function App() {
                 <Route path="*" element={<ErrorPage />} />
                 <Route path="/error" element={<ErrorPage />} />
             </Routes>
+            </NotificationProvider>
         </Router>
     );
 }

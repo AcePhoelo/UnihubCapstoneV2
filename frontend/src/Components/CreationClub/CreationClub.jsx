@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import './CreationClub.css';
 import { useNavigate } from 'react-router-dom';
 import backIcon from '../../assets/Back.png';
+import { useNotification } from '../Notification/Context';
 
 const CreationClub = () => {
     const navigate = useNavigate();
@@ -14,6 +15,7 @@ const CreationClub = () => {
     const [formValid, setFormValid] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const maxDescriptionLength = 1500;
+    const { success: success2, error: error2 } = useNotification();
 
     const handleIconChange = (e) => {
         const file = e.target.files[0];
@@ -68,7 +70,7 @@ const CreationClub = () => {
 
             if (response.ok) {
                 const data = await response.json();
-                alert('Club created successfully!');
+                success2('Club created successfully!');
                 // Use React Router navigation instead of window.location
                 navigate(`/club/${data.club.id}`);
             }else {

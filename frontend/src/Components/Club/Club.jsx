@@ -10,6 +10,7 @@ import Exit from '../../assets/Exit.png';
 import deleteIcon from '../../assets/delete_white.png';
 import Sidebar from '../CollabSidebar/Sidebar';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useNotification } from '../Notification/Context';
 
 const MemberCategorySection = ({ title, members, searchQuery, getInitials }) => {
     if (!members || members.length === 0) return null;
@@ -51,6 +52,7 @@ const Club = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const { club_id } = useParams();
+    const { success: success2, error: error2, confirm } = useNotification();
 
     const [club, setClub] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -80,6 +82,9 @@ const Club = () => {
     const [isClubPresident, setIsClubPresident] = useState(false);
     const [clubRoles, setClubRoles] = useState([]);
 
+    const [showTransferModal, setShowTransferModal] = useState(false);
+const [eligibleMembers, setEligibleMembers] = useState([]);
+const [selectedNewPresident, setSelectedNewPresident] = useState(null);
     const logoInputRef = useRef(null);
     const bannerInputRef = useRef(null);
     const descRef = useRef(null);
@@ -251,14 +256,104 @@ const Club = () => {
         setIsUserMember(true);
         fetchClubMembers();
     };
+
     const leaveClub = async () => {
-        const token = localStorage.getItem('access_token');
-        await fetch(`http://127.0.0.1:8000/clubs/clubs/${club_id}/members/${JSON.parse(localStorage.getItem('profile')).studentid}/remove/`, {
-            method: 'DELETE',
-            headers: { Authorization: `Bearer ${token}` }
-        });
-        setIsUserMember(false);
-        fetchClubMembers();
+        if (isClubPresident) {
+            try {
+                // Get fresh member data with original structure - don't transform it!
+                const token = localStorage.getItem('access_token');
+                const response = await fetch(`http://127.0.0.1:8000/clubs/clubs/${club_id}/members/`, {
+                    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
+                });
+    
+                if (!response.ok) {
+                    throw new Error("Failed to fetch club members");
+                }
+    
+                const data = await response.json();
+                const currentUserID = JSON.parse(localStorage.getItem('profile')).studentid;
+                
+                // Keep the original structure from API, don't transform it
+                const membersList = data.results || [];
+                console.log("Raw API members data:", membersList);
+                
+                // Filter out the current user using studentid
+                const eligibleMemberList = membersList.filter(m => {
+                    const memberStudentId = m.studentid || m.student?.studentid;
+                    return memberStudentId && memberStudentId !== currentUserID;
+                });
+                
+                console.log("Eligible members:", eligibleMemberList);
+    
+                if (eligibleMemberList.length > 0) {
+                    setEligibleMembers(eligibleMemberList);
+                    setShowTransferModal(true);
+                } else {
+                    error2("No eligible members found to transfer leadership to");
+                }
+            } catch (err) {
+                console.error("Error preparing leadership transfer:", err);
+                error2("Failed to load members for leadership transfer");
+            }
+        } else {
+            // Normal leave process for non-presidents
+            const token = localStorage.getItem('access_token');
+            await fetch(`http://127.0.0.1:8000/clubs/clubs/${club_id}/members/${JSON.parse(localStorage.getItem('profile')).studentid}/remove/`, {
+                method: 'DELETE',
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            setIsUserMember(false);
+            fetchClubMembers();
+        }
+    };
+    
+    const handleTransferLeadership = async () => {
+        if (!selectedNewPresident) {
+            error2('Please select a member to become the new president');
+            return;
+        }
+    
+        try {
+            const token = localStorage.getItem('access_token');
+            
+            // This is critical: Extract the correct Student ID
+            // Must be the Student model ID, not the membership ID
+            const newPresidentId = selectedNewPresident.student?.id || selectedNewPresident.id;
+            
+            console.log("Full selected object:", selectedNewPresident);
+            console.log("Using ID for transfer:", newPresidentId);
+            
+            if (!newPresidentId) {
+                throw new Error("Could not determine new president ID");
+            }
+            
+            const response = await fetch(`http://127.0.0.1:8000/clubs/clubs/${club_id}/transfer_leadership/`, {
+                method: 'POST',
+                headers: { 
+                    Authorization: `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ 
+                    new_president_id: newPresidentId,
+                    remove_old_president: true 
+                })
+            });
+    
+            if (!response.ok) {
+                // Extract error message from response
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to transfer leadership');
+            }
+    
+            success2('Leadership transferred successfully');
+            setIsClubPresident(false);
+            setIsUserMember(false);
+            setShowTransferModal(false);
+            navigate('/club-directory');
+        } catch (err) {
+            error2(`Failed to transfer leadership: ${err.message}`);
+            console.error(err);
+        }
     };
 
     const navigateToProfile = user => {
@@ -356,13 +451,22 @@ const Club = () => {
     };
 
     const handleDeleteClub = async () => {
-        if (!window.confirm('Are you sure you want to delete this club?')) return;
+        const confirmed = await confirm('Are you sure you want to delete this club? This action cannot be undone.');
+        
+        if (!confirmed) return;
+        
         const token = localStorage.getItem('access_token');
         const resp = await fetch(`http://127.0.0.1:8000/clubs/clubs/${club_id}/delete/`, {
             method: 'DELETE',
             headers: { Authorization: `Bearer ${token}` }
         });
-        if (resp.ok) navigate('/club-directory');
+        
+        if (resp.ok) {
+            success2('Club deleted successfully');
+            navigate('/club-directory');
+        } else {
+            error('Failed to delete club');
+        }
     };
 
     const handleEventCreationClick = () => navigate('/creation-event');
@@ -720,7 +824,7 @@ const Club = () => {
                                         </div>
                                         <div className="members-body">
                                             <MemberCategorySection
-                                                title="Leader"
+                                                title="President"
                                                 members={members.filter(m => m.position === 'President')}
                                                 searchQuery={searchQuery}
                                                 getInitials={getInitials}
@@ -782,6 +886,72 @@ const Club = () => {
                     style={{ display: 'none' }}
                     onChange={handleBannerChange}
                 />
+                {/* Transfer Leadership Modal */}
+                {showTransferModal && (
+                    <div className="modal-overlay">
+                        <div className="transfer-leadership-modal">
+                            <div className="modal-header">
+                                <h2>Transfer Club Leadership</h2>
+                                <button 
+                                    className="close-button" 
+                                    onClick={() => setShowTransferModal(false)}
+                                >
+                                    &times;
+                                </button>
+                            </div>
+                            <div className="modal-body">
+                                <p>
+                                    As club president, you must designate a new leader before leaving.
+                                    Please select a member to become the new president:
+                                </p>
+                                
+                                <div className="member-selection">
+                                <select
+                                    className="member-dropdown"
+                                    onChange={(e) => {
+                                        const selectedId = parseInt(e.target.value);
+                                        const selectedMember = eligibleMembers.find(m => {
+                                            // Focus on the database ID, not studentid
+                                            const memberId = m.id || m.student?.id;
+                                            return memberId === selectedId;
+                                        });
+                                        
+                                        console.log("Selected member:", selectedMember);
+                                        setSelectedNewPresident(selectedMember);
+                                    }}
+                                    defaultValue=""
+                                >
+                                    <option value="" disabled>Select a new president</option>
+                                    {eligibleMembers.map(member => {
+                                        const id = member.id || member.student?.id;
+                                        const name = member.full_name || member.student?.full_name;
+                                        return (
+                                            <option key={id} value={id}>
+                                                {name}
+                                            </option>
+                                        );
+                                    })}
+                                </select>
+                                </div>
+                            </div>
+                            <div className="modal-footer">
+                                <button 
+                                    className="cancel-button"
+                                    onClick={() => setShowTransferModal(false)}
+                                >
+                                    Cancel
+                                </button>
+                                <button 
+                                    className="confirm-button"
+                                    onClick={handleTransferLeadership}
+                                    disabled={!selectedNewPresident}
+                                >
+                                    Confirm and Leave
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

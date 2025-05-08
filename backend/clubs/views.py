@@ -196,6 +196,13 @@ def create_club(request):
         president=request.user.student  # Assuming the logged-in user is the president
     )
 
+    # Add the president as a member with "President" position
+    ClubMembership.objects.create(
+        student=request.user.student,
+        club=club,
+        position="President"
+    )
+
     # Add members to the club using ClubMembership
     for student in students:
         ClubMembership.objects.create(
@@ -382,3 +389,51 @@ def get_position_choices(request, club_id):
     """Return the POSITION_CHOICES from the ClubMembership model."""
     choices = [{"value": choice[0], "label": choice[1]} for choice in ClubMembership.POSITION_CHOICES]
     return Response(choices)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def transfer_leadership(request, club_id):
+    """
+    Transfer club leadership from current president to another member.
+    """
+    try:
+        club = Club.objects.get(id=club_id)
+        current_user = request.user.student
+        new_president_id = request.data.get('new_president_id')
+        
+        # Verify the current user is the president
+        if club.president != current_user:
+            return Response({"error": "Only the current president can transfer leadership"}, status=403)
+        
+        # Verify the new president exists and is a member
+        try:
+            new_president = Student.objects.get(id=new_president_id)
+            membership = ClubMembership.objects.get(club=club, student=new_president)
+        except (Student.DoesNotExist, ClubMembership.DoesNotExist):
+            return Response({"error": "Selected user is not a member of this club"}, status=400)
+        
+        # Update the club president
+        club.president = new_president
+        club.save()
+        
+        # Update the membership statuses
+        membership.position = 'President'
+        membership.save()
+        
+        # Remove the old president if requested
+        remove_old = request.data.get('remove_old_president', False)
+        if remove_old:
+            old_membership = ClubMembership.objects.get(club=club, student=current_user)
+            old_membership.delete()
+            
+        return Response({
+            "message": "Leadership transferred successfully",
+            "new_president": {
+                "id": new_president.id,
+                "full_name": new_president.full_name,
+                "studentid": new_president.studentid
+            }
+        }, status=200)
+        
+    except Club.DoesNotExist:
+        return Response({"error": "Club not found"}, status=404)

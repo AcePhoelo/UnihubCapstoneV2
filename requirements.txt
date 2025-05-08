@@ -12,5 +12,4 @@ mysqlclient
 requests
 colorthief
 pillow
-framer-motion
-lucide-react
+tqdm

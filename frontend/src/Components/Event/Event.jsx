@@ -12,6 +12,7 @@ import Exit from '../../assets/Exit.png';
 import Sidebar from '../CollabSidebar/Sidebar';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useNotification } from '../Notification/Context';
 
 const Event = () => {
     const navigate = useNavigate();
@@ -38,6 +39,7 @@ const Event = () => {
     const [participants, setParticipants] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
+    const { success: success2, error: error2, confirm } = useNotification();
     const [overlayHiding, setOverlayHiding] = useState(false);
     const [hidingExit, setHidingExit] = useState(false);
     const [hidingPanel, setHidingPanel] = useState(false);
@@ -364,81 +366,81 @@ useEffect(() => {
             }
         }, [event, studentID]);
 
-    const handleDeleteEvent = async () => {
-        if (!window.confirm('Are you sure you want to delete this event? This action cannot be undone.')) {
-            return;
-        }
-        
-        try {
-            const token = localStorage.getItem('access_token');
+        const handleDeleteEvent = async () => {
+            const confirmed = await confirm('Are you sure you want to delete this event? This action cannot be undone.');
             
-            const response = await fetch(`http://127.0.0.1:8000/api/event/delete_event/${event.id}/`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-            });
-    
-            if (response.ok) {
-                alert('Event deleted successfully');
-                navigate('/event-directory');
-            } else {
-                alert('Failed to delete event');
+            if (!confirmed) return;
+            
+            try {
+                const token = localStorage.getItem('access_token');
+                
+                const response = await fetch(`http://127.0.0.1:8000/api/event/delete_event/${event.id}/`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                    },
+                });
+        
+                if (response.ok) {
+                    success2('Event deleted successfully');
+                    navigate('/event-directory');
+                } else {
+                    error2('Failed to delete event');
+                }
+            } catch (err) {
+                console.error('Error deleting event:', err);
+                error2('Error deleting event');
             }
-        } catch (err) {
-            console.error('Error deleting event:', err);
-            alert('Error deleting event');
-        }
-    };
+        };
 
-    const handleCancelRegistration = async () => {
-        if (isGuest) {
-            navigate('/login');
-            return;
-        }
-        
-        if (!window.confirm('Are you sure you want to cancel your registration for this event?')) {
-            return;
-        }
-        
-        try {
-            const token = localStorage.getItem('access_token');
-            
-            const userRegistration = participants.find(p => 
-                p.student && p.student.studentid === studentID
-            );
-            
-            if (!userRegistration) {
-                console.error('User registration not found');
+        const handleCancelRegistration = async () => {
+            if (isGuest) {
+                navigate('/login');
                 return;
             }
             
-            const response = await fetch(`http://127.0.0.1:8000/api/event/event_registration/delete/${userRegistration.id}/`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-            });
+            const confirmed = await confirm('Are you sure you want to cancel your registration for this event?');
             
-            if (response.ok) {
-                setIsUserRegistered(false);
-                localStorage.setItem(`event_registered_${event.id}`, 'false');
+            if (!confirmed) return;
+            
+            try {
+                const token = localStorage.getItem('access_token');
                 
-                setParticipants(participants.filter(p => 
-                    !p.student || p.student.studentid !== studentID
-                ));
+                const userRegistration = participants.find(p => 
+                    p.student && p.student.studentid === studentID
+                );
                 
-                if (showParticipantsPanel) {
-                    fetchEventParticipants();
+                if (!userRegistration) {
+                    console.error('User registration not found');
+                    return;
                 }
-            } else {
-                alert('Failed to cancel registration');
+                
+                const response = await fetch(`http://127.0.0.1:8000/api/event/event_registration/delete/${userRegistration.id}/`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                    },
+                });
+                
+                if (response.ok) {
+                    setIsUserRegistered(false);
+                    localStorage.setItem(`event_registered_${event.id}`, 'false');
+                    
+                    setParticipants(participants.filter(p => 
+                        !p.student || p.student.studentid !== studentID
+                    ));
+                    
+                    if (showParticipantsPanel) {
+                        fetchEventParticipants();
+                    }
+                } else {
+                    error2('Failed to cancel registration');
+                }
+            } catch (err) {
+                console.error('Error cancelling registration:', err);
+                error2('Error cancelling registration');
             }
-        } catch (err) {
-            console.error('Error cancelling registration:', err);
-            alert('Error cancelling registration');
-        }
-    };
+        };
 
     const handleCancelEdit = () => {
         setIsEditMode(false);
@@ -501,11 +503,11 @@ useEffect(() => {
                 const errorMessage = errorData.detail || 
                                     Object.values(errorData).flat().join(', ') || 
                                     'Failed to update event';
-                alert(`Error: ${errorMessage}`);
+                error2(`Error: ${errorMessage}`);
             }
         } catch (err) {
             console.error('Error updating event:', err);
-            alert('Error updating event: ' + err.message);
+            error2('Error updating event: ' + err.message);
         }
     };
 
@@ -517,33 +519,33 @@ useEffect(() => {
         navigate(`/register-event/${encodeURIComponent(decodedName)}`) };
     const handleNav = path => () => navigate(path);
 
-    const handleRemoveParticipant = async (participantId) => {
-        if (!window.confirm('Are you sure you want to remove this participant?')) {
-            return;
-        }
-        
-        try {
-            const token = localStorage.getItem('access_token');
-            const response = await fetch(`http://127.0.0.1:8000/api/event/event_registration/delete/${participantId}/`, {
-                method: 'DELETE',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-            });
+const handleRemoveParticipant = async (participantId) => {
+    const confirmed = await confirm('Are you sure you want to remove this participant?');
     
-            if (response.ok) {
-                setParticipants(participants.filter((p) => p.id !== participantId));
-                fetchEventParticipants();
-            } else {
-                const errorData = await response.json();
-                console.error('Failed to remove participant:', errorData);
-                alert('Failed to remove participant: ' + (errorData.detail || 'Unknown error'));
-            }
-        } catch (err) {
-            console.error('Error removing participant:', err);
-            alert('Error removing participant');
+    if (!confirmed) return;
+    
+    try {
+        const token = localStorage.getItem('access_token');
+        const response = await fetch(`http://127.0.0.1:8000/api/event/event_registration/delete/${participantId}/`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        if (response.ok) {
+            setParticipants(participants.filter((p) => p.id !== participantId));
+            fetchEventParticipants();
+        } else {
+            const errorData = await response.json();
+            console.error('Failed to remove participant:', errorData);
+            error2('Failed to remove participant: ' + (errorData.detail || 'Unknown error'));
         }
-    };
+    } catch (err) {
+        console.error('Error removing participant:', err);
+        error2('Error removing participant');
+    }
+};
 
     if (loading) {
         return <div className="loading">Loading event details...</div>;
@@ -556,6 +558,20 @@ useEffect(() => {
     if (!event) {
         return <div className="event-not-found">No event found.</div>;
     }
+
+const isEventPassed = () => {
+  if (!event || !event.date) return false;
+  
+  // Parse event date (format: YYYY-MM-DD)
+  const eventDate = new Date(event.date);
+  eventDate.setDate(eventDate.getDate() + 1); // Day after the event
+  
+  // Get current date without time
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  return today >= eventDate;
+};
 
     return (
         <div className="event-page">
@@ -837,19 +853,27 @@ useEffect(() => {
             </div>
 
             <div className="feedback-box">
-                <button
+                {/* Only show button to club leaders/creators OR to non-guest users after event has passed */}
+                {((isEventCreator || isClubLeaderForEvent) || (!isGuest && isEventPassed())) && (
+                    <button
                     className="feedback-button"
                     onClick={() => {
-                        if (isEventCreator) {
-                            navigate(`/feedback-review/${encodeURIComponent(decodedName)}`);
+                        if (!isEventPassed()) {
+                        // Event hasn't passed - only club leaders should see this (due to visibility condition)
+                        error2("Feedback is not available until the day after the event.");
+                        } else if (isEventCreator || isClubLeaderForEvent) {
+                        // Event has passed and user is club leader/creator - go to review page
+                        navigate(`/feedback-review/${encodeURIComponent(decodedName)}`);
                         } else {
-                            navigate(`/feedback/${encodeURIComponent(decodedName)}`);
+                        // Event has passed and user is regular user - go to feedback submission page
+                        navigate(`/feedback/${encodeURIComponent(decodedName)}`);
                         }
                     }}
-                >
+                    >
                     Feedback
-                </button>
-            </div>
+                    </button>
+                )}
+                </div>
 
             <AnimatePresence>
                 {showParticipantsPanel && (

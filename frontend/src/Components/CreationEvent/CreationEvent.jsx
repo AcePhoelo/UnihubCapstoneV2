@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import './CreationEvent.css';
 import { useNavigate } from 'react-router-dom';
 import backIcon from '../../assets/Back.png';
+import { useNotification } from '../Notification/Context';
 
 const CreationEvent = () => {
     const navigate = useNavigate();
@@ -9,6 +10,7 @@ const CreationEvent = () => {
     const [eventName, setEventName] = useState('');
     const [description, setDescription] = useState('');
     const [eventDate, setEventDate] = useState('');
+    const { success: success2, error: error2 } = useNotification();
     const [eventTime, setEventTime] = useState('');
     const [eventAddress, setEventAddress] = useState('');
     const [eventImage, setEventImage] = useState(null);
@@ -102,7 +104,7 @@ const CreationEvent = () => {
             });
 
             if (response.ok) {
-                alert('Event created successfully!');
+                success2('Event created successfully!');
                 window.location.href = '/event-directory';
             } else {
                 const errorData = await response.json();

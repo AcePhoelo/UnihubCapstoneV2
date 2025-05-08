@@ -83,7 +83,10 @@ const MyActivity = () => {
     
             setStudentName(profile.full_name || "Unknown Student");
             setStudentID(profile.studentid || "Unknown ID");
-            setProfilePicture(profile.profile_picture || "");
+
+            const profilePicUrl = profile.profile_picture || '';
+            setProfilePicture(profilePicUrl.startsWith('http') ? profilePicUrl : 
+            profilePicUrl ? `http://127.0.0.1:8000${profilePicUrl}` : '');
         };
     
         fetchProfileIfNeeded();
@@ -129,7 +132,9 @@ const MyActivity = () => {
     
             setStudentName(profile.full_name || "Unknown Student");
             setStudentID(profile.studentid || "Unknown ID");
-            setProfilePicture(profile.profile_picture || "");
+            const profilePicUrl = profile.profile_picture || '';
+            setProfilePicture(profilePicUrl.startsWith('http') ? profilePicUrl : 
+            profilePicUrl ? `http://127.0.0.1:8000${profilePicUrl}` : '');
     
             // Fetch user activity
             const fetchUserActivity = async () => {
@@ -406,13 +411,13 @@ const MyActivity = () => {
                                         >
                                             <div className="leadership-badge">Club Leader</div>
                                             <img
-                                                src={club.logoUrl || club.logo || '/default-club-logo.png'}
+                                                src={club.imageUrl || club.banner || '/default-club-banner.png'}
                                                 alt={club.name}
                                                 className="activity-club-card-banner"
                                                 onError={(e) => { 
                                                     console.log("Image error:", e.target.src);
                                                     e.target.onerror = null; 
-                                                    e.target.src = '/default-club-logo.png'; 
+                                                    e.target.src = '/default-club-banner.png'; 
                                                 }}
                                             />
                                             <div className="activity-club-card-name">{club.name}</div>

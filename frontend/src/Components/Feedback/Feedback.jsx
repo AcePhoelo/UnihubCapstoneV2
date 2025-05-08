@@ -10,9 +10,11 @@ import satisfied_n from '../../assets/satisfied_n.png';
 import fine_n from '../../assets/fine_n.png';
 import unsatisfied_n from '../../assets/unsatisfied_n.png';
 import backIcon from '../../assets/Back.png';
+import { useNotification } from '../Notification/Context';
 
 const Feedback = () => {
     const navigate = useNavigate();
+    const { success: success2, error: error2 } = useNotification();
     const { eventName } = useParams();
     const decodedEventName = decodeURIComponent(eventName || '');
     const [event, setEvent] = useState(null);
@@ -96,6 +98,26 @@ const Feedback = () => {
     };
 
     const nextStep = () => {
+        if (step === 1) {
+            if (!selectedRole) {
+                error2('Please select your role before proceeding.');
+                return;
+            }
+        } else if (step === 2) {
+            if (!like) {
+                error2('Please enter what you liked most.');
+                return;
+            }
+            if (!dislike) {
+                error2('Please enter what you disliked most.');
+                return;
+            }
+            if (!satisfaction) {
+                error2('Please select your satisfaction level.');
+                return;
+            }
+        }
+        
         if (step < 3) setStep(step + 1);
     };
 
@@ -104,11 +126,34 @@ const Feedback = () => {
         setSatisfaction(image);
     };
 
+    const validateForm = () => {
+        const missingFields = [];
+        
+        if (!selectedRole) missingFields.push('Role');
+        if (!like) missingFields.push('What you liked');
+        if (!dislike) missingFields.push('What you disliked');
+        if (!satisfaction) missingFields.push('Satisfaction rating');
+        if (!feedbackText) missingFields.push('Experience description');
+        
+        return {
+            isValid: missingFields.length === 0,
+            missingFields
+        };
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
 
         if (!event || !userProfile) {
-            alert('Missing event or user information. Please try again.');
+            error2('Missing event or user information. Please try again.');
+            return;
+        }
+
+        // Validate the form
+        const { isValid, missingFields } = validateForm();
+        
+        if (!isValid) {
+            error2(`Please fill in all required fields: ${missingFields.join(', ')}`);
             return;
         }
 
@@ -135,17 +180,24 @@ const Feedback = () => {
             if (response.ok) {
                 setSuccess(true);
                 setError('');
-                alert('Feedback submitted successfully!');
+                success('Feedback submitted successfully!');
                 navigate(`/event/${encodeURIComponent(event.name)}`);
             } else {
                 const errorData = await response.json();
-                setError(errorData.detail || 'Failed to submit feedback.');
+                const errorMessage = typeof errorData === 'object' 
+                    ? Object.entries(errorData).map(([field, errors]) => `${field}: ${errors}`).join(', ')
+                    : (errorData.detail || 'Failed to submit feedback.');
+                setError(errorMessage);
+                error2(errorMessage);
             }
         } catch (err) {
             console.error('Error submitting feedback:', err);
-            setError('An error occurred while submitting feedback.');
+            const errorMessage = 'An error occurred while submitting feedback.';
+            setError(errorMessage);
+            error2(errorMessage);
         }
     };
+    
 
     if (loading) return <div>Loading...</div>;
     if (error) return <div className="error-message">{error}</div>;

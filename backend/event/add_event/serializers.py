@@ -1,12 +1,14 @@
 from rest_framework import serializers
 from .models import Event
-from clubs.models import Club  # Assuming the Club model is in the clubs app
+from clubs.models import Club, ColorPalette
+from clubs.signals import calculate_colors  # Assuming the Club model is in the clubs app
 from user_profile.serializers import StudentSerializer
 from user_profile.models import Student
 from colorthief import ColorThief
 from django.core.cache import cache
 import os
 import colorsys
+import json
 
 class ClubSerializer(serializers.ModelSerializer):
     president = serializers.SerializerMethodField()
@@ -53,67 +55,122 @@ class EventSerializer(serializers.ModelSerializer):
     
         
     def get_dominant_color(self, obj):
+        if not obj.banner:
+            return None
+            
+        # Try to get from cache first (for fastest access)
         cache_key = f"event_{obj.id}_dominant_color"
         dominant_color = cache.get(cache_key)
-        if not dominant_color:
-            if obj.banner and os.path.exists(obj.banner.path):
-                try:
-                    color_thief = ColorThief(obj.banner.path)
-                    palette = color_thief.get_palette(color_count=3, quality=1)
-                    dominant_color = palette[0]
+        
+        if dominant_color:
+            return dominant_color
+            
+        # If not in cache, try to get from database
+        try:
+            if os.path.exists(obj.banner.path):
+                palette, created = ColorPalette.objects.get_or_create(image_path=obj.banner.path)
+                if palette.dominant_color:
+                    dominant_color = json.loads(palette.dominant_color)
+                    # Store in cache for faster subsequent access
                     cache.set(cache_key, dominant_color, timeout=3600)
-                except Exception as e:
-                    print(f"Error calculating dominant color: {e}")
-                    return None
-        return dominant_color
+                    return dominant_color
+                    
+                # If we don't have it in the database yet, calculate it
+                color_palette = calculate_colors(obj.banner.path)
+                if color_palette and color_palette.dominant_color:
+                    dominant_color = json.loads(color_palette.dominant_color)
+                    cache.set(cache_key, dominant_color, timeout=3600)
+                    return dominant_color
+        except Exception as e:
+            print(f"Error accessing color palette: {e}")
+        
+        return None
 
     def get_secondary_color(self, obj):
+        if not obj.banner:
+            return None
+            
         cache_key = f"event_{obj.id}_secondary_color"
         secondary = cache.get(cache_key)
-        if not secondary:
-            if obj.banner and os.path.exists(obj.banner.path):
-                try:
-                    palette = ColorThief(obj.banner.path).get_palette(color_count=3, quality=1)
-                    if len(palette) > 1:
-                        secondary = palette[1]
-                        cache.set(cache_key, secondary, timeout=3600)
-                except Exception as e:
-                    print(f"Error calculating secondary color: {e}")
-                    return None
-        return secondary
+        
+        if secondary:
+            return secondary
+        
+        try:
+            if os.path.exists(obj.banner.path):
+                palette, created = ColorPalette.objects.get_or_create(image_path=obj.banner.path)
+                if palette.secondary_color:
+                    secondary = json.loads(palette.secondary_color)
+                    cache.set(cache_key, secondary, timeout=3600)
+                    return secondary
+                    
+                # If not in database, calculate all colors at once
+                color_palette = calculate_colors(obj.banner.path)
+                if color_palette and color_palette.secondary_color:
+                    secondary = json.loads(color_palette.secondary_color)
+                    cache.set(cache_key, secondary, timeout=3600)
+                    return secondary
+        except Exception as e:
+            print(f"Error accessing color palette: {e}")
+        
+        return None
 
     def get_tertiary_color(self, obj):
-        cache_key = f"club_{obj.id}_tertiary_color"
+        if not obj.banner:
+            return None
+            
+        cache_key = f"event_{obj.id}_tertiary_color"
         tertiary = cache.get(cache_key)
-        if not tertiary:
-            if obj.banner and os.path.exists(obj.banner.path):
-                try:
-                    palette = ColorThief(obj.banner.path).get_palette(color_count=3, quality=1)
-                    if len(palette) > 2:
-                        tertiary = palette[2]
-                        cache.set(cache_key, tertiary, timeout=3600)
-                except Exception as e:
-                    print(f"Error calculating tertiary color: {e}")
-                    return None
-        return tertiary
+        
+        if tertiary:
+            return tertiary
+        
+        try:
+            if os.path.exists(obj.banner.path):
+                palette, created = ColorPalette.objects.get_or_create(image_path=obj.banner.path)
+                if palette.tertiary_color:
+                    tertiary = json.loads(palette.tertiary_color)
+                    cache.set(cache_key, tertiary, timeout=3600)
+                    return tertiary
+                    
+                # If not in database, calculate all colors at once
+                color_palette = calculate_colors(obj.banner.path)
+                if color_palette and color_palette.tertiary_color:
+                    tertiary = json.loads(color_palette.tertiary_color)
+                    cache.set(cache_key, tertiary, timeout=3600)
+                    return tertiary
+        except Exception as e:
+            print(f"Error accessing color palette: {e}")
+        
+        return None
 
     def get_shadow_color(self, obj):
+        if not obj.banner:
+            return None
+            
         cache_key = f"event_{obj.id}_shadow_color"
         shadow_color = cache.get(cache_key)
-        if not shadow_color:
-            dominant_color = self.get_dominant_color(obj)
-            if dominant_color:
-                try:
-                    r, g, b = [x / 255.0 for x in dominant_color]
-                    h, l, s = colorsys.rgb_to_hls(r, g, b)
-                    l = max(0, l * 0.3)
-                    s = max(0, s * 0.5)
-                    r, g, b = colorsys.hls_to_rgb(h, l, s)
-                    shadow_color = [int(r * 255), int(g * 255), int(b * 255)]
-                    cache.set(cache_key, shadow_color, timeout=2592000)
-                except Exception as e:
-                    print(f"Error calculating shadow color: {e}")
-                    return None
-        return shadow_color
+        
+        if shadow_color:
+            return shadow_color
+            
+        try:
+            if os.path.exists(obj.banner.path):
+                palette, created = ColorPalette.objects.get_or_create(image_path=obj.banner.path)
+                if palette.shadow_color:
+                    shadow_color = json.loads(palette.shadow_color)
+                    cache.set(cache_key, shadow_color, timeout=3600)
+                    return shadow_color
+                
+                # If not in database, calculate all colors at once
+                color_palette = calculate_colors(obj.banner.path)
+                if color_palette and color_palette.shadow_color:
+                    shadow_color = json.loads(color_palette.shadow_color)
+                    cache.set(cache_key, shadow_color, timeout=3600)
+                    return shadow_color
+        except Exception as e:
+            print(f"Error accessing color palette: {e}")
+        
+        return None
 
-    
+        

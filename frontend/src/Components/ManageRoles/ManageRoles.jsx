@@ -3,12 +3,14 @@ import { useParams, useNavigate } from 'react-router-dom';
 import backIcon from '../../assets/Back.png';
 import './ManageRoles.css';
 import Edit from '../../assets/edit.png';
+import { useNotification } from '../Notification/Context';
 import Delete from '../../assets/delete.png';
 
 const ManageRoles = () => {
     const [clubMembers, setClubMembers] = useState([]);
     const [standardRoles, setStandardRoles] = useState([]);
     const [existingRoles, setExistingRoles] = useState([]);
+    const { info, warning, error2 } = useNotification();
     const [editingIndex, setEditingIndex] = useState(null);
     const [editedRoleName, setEditedRoleName] = useState('');
     const { club_id } = useParams();
@@ -54,7 +56,7 @@ const ManageRoles = () => {
             console.warn('Access token missing, attempting to refresh...');
             token = await refreshAccessToken();
             if (!token) {
-                alert('You must be logged in to access this page.');
+                warning('You must be logged in to access this page.');
                 navigate('/login');
                 return null;
             }
@@ -183,7 +185,7 @@ const ManageRoles = () => {
 
     const handleAddStandardRole = async () => {
         if (!selectedStandardRole) {
-            alert('Please select a role to add');
+            info('Please select a role to add');
             return;
         }
     
@@ -193,7 +195,7 @@ const ManageRoles = () => {
         try {
             const memberIds = selectedNewRoleMembers;
             if (memberIds.length === 0) {
-                alert('Please select at least one member');
+                info('Please select at least one member');
                 return;
             }
     
@@ -217,13 +219,13 @@ const ManageRoles = () => {
             setSelectedNewRoleMembers([]);
         } catch (err) {
             console.error('Error adding standard role:', err);
-            alert('Failed to add role. Please try again.');
+            error2('Failed to add role. Please try again.');
         }
     };
     
     const handleCreateNewRole = async () => {
         if (!newRoleName) {
-            alert('Please enter a role name');
+            warning('Please enter a role name');
             return;
         }
     
@@ -251,13 +253,13 @@ const ManageRoles = () => {
             setSelectedNewRoleMembers([]);
         } catch (err) {
             console.error('Error creating new role:', err);
-            alert('Failed to create role. Please try again.');
+            error2('Failed to create role. Please try again.');
         }
     };
 
     const handleUpdateRole = async (roleId, updatedRoleName) => {
         if (!updatedRoleName) {
-            alert('Role name cannot be empty');
+            warning('Role name cannot be empty');
             return;
         }
     
@@ -288,7 +290,7 @@ const ManageRoles = () => {
             setEditingIndex(null);
         } catch (err) {
             console.error('Error updating role:', err);
-            alert('Failed to update role. Please try again.');
+            error2('Failed to update role. Please try again.');
         }
     };
 
@@ -331,7 +333,7 @@ const ManageRoles = () => {
             setExistingRoles(existingRoles.filter((_, i) => i !== index));
         } catch (err) {
             console.error('Error deleting role:', err);
-            alert('Failed to delete role. Please try again.');
+            error2('Failed to delete role. Please try again.');
         }
     };
 

@@ -3,6 +3,7 @@ import './RegisterEvent.css';
 import { Dropdown } from 'react-bootstrap';
 import { useParams, useNavigate } from 'react-router-dom';
 import backIcon from '../../assets/Back.png';
+import { useNotification } from '../Notification/Context';
 
 const RegisterEvent = () => {
     const { eventName: encodedEventName } = useParams();
@@ -10,6 +11,7 @@ const RegisterEvent = () => {
     const [selectedRole, setSelectedRole] = useState("Participant");
     const [event, setEvent] = useState(null);
     const [loading, setLoading] = useState(true);
+    const { success: success2, info, warning, error: error2 } = useNotification();
     const [error, setError] = useState(null);
     const [registrationSuccess, setRegistrationSuccess] = useState(false);
     
@@ -84,7 +86,7 @@ const RegisterEvent = () => {
             } else {
                 const errorData = await response.json();
                 if (response.status === 403 && errorData.detail === "You are already registered for this event.") {
-                    alert("You are already registered for this event.");
+                    info("You are already registered for this event.");
                     navigate(`/event/${encodedEventName}`);
                 } else {
                     throw new Error('Registration failed');

@@ -1,4 +1,5 @@
 from django.db import models
+import json
 
 class Club(models.Model):
     name = models.CharField(max_length=100)
@@ -100,3 +101,31 @@ class ClubMembership(models.Model):
 
     def __str__(self):
         return f"{self.student.full_name} - {self.club.name} ({self.position})"
+    
+class ColorPalette(models.Model):
+    """Stores pre-calculated color data for images to avoid recalculation."""
+    image_path = models.CharField(max_length=255, unique=True)
+    dominant_color = models.CharField(max_length=50, null=True, blank=True)
+    secondary_color = models.CharField(max_length=50, null=True, blank=True)
+    tertiary_color = models.CharField(max_length=50, null=True, blank=True)
+    shadow_color = models.CharField(max_length=50, null=True, blank=True)
+    last_calculated = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"Color palette for {self.image_path.split('/')[-1]}"
+        
+    def get_dominant_color(self):
+        """Returns the dominant color as a list of RGB values"""
+        return json.loads(self.dominant_color) if self.dominant_color else None
+        
+    def get_secondary_color(self):
+        """Returns the secondary color as a list of RGB values"""
+        return json.loads(self.secondary_color) if self.secondary_color else None
+        
+    def get_tertiary_color(self):
+        """Returns the tertiary color as a list of RGB values"""
+        return json.loads(self.tertiary_color) if self.tertiary_color else None
+        
+    def get_shadow_color(self):
+        """Returns the shadow color as a list of RGB values"""
+        return json.loads(self.shadow_color) if self.shadow_color else None
