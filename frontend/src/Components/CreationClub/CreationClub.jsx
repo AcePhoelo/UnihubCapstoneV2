@@ -69,8 +69,9 @@ const CreationClub = () => {
             if (response.ok) {
                 const data = await response.json();
                 alert('Club created successfully!');
-                window.location.href = `/club/${data.club.id}`;
-            } else {
+                // Use React Router navigation instead of window.location
+                navigate(`/club/${data.club.id}`);
+            }else {
                 const errorData = await response.json();
                 setErrorMessage(errorData.error || 'Failed to create club');
             }

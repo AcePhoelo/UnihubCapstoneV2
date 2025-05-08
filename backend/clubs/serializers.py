@@ -31,11 +31,13 @@ class ClubSerializer(serializers.ModelSerializer):
     president = serializers.SerializerMethodField()  # Use lazy import for StudentSerializer
     members = ClubMembershipSerializer(source='clubmembership_set', many=True, read_only=True)
     dominant_color = serializers.SerializerMethodField()
+    secondary_color = serializers.SerializerMethodField()
+    tertiary_color = serializers.SerializerMethodField()
     shadow_color = serializers.SerializerMethodField()
 
     class Meta:
         model = Club
-        fields = ['id', 'name', 'description', 'president', 'logo', 'banner', 'members', 'dominant_color', 'shadow_color']
+        fields = ['id', 'name', 'description', 'president', 'logo', 'banner', 'members', 'dominant_color', 'shadow_color', 'secondary_color', 'tertiary_color'] 
 
     def get_president(self, obj):
         """
@@ -48,45 +50,64 @@ class ClubSerializer(serializers.ModelSerializer):
         return None
 
     def get_dominant_color(self, obj):
-        """
-        Get the dominant color of the banner image, with caching.
-        """
         cache_key = f"club_{obj.id}_dominant_color"
         dominant_color = cache.get(cache_key)
         if not dominant_color:
             if obj.banner and os.path.exists(obj.banner.path):
                 try:
-                    # Use ColorThief to calculate the dominant color
                     color_thief = ColorThief(obj.banner.path)
-                    dominant_color = color_thief.get_color(quality=1)
-                    cache.set(cache_key, dominant_color, timeout=3600)  # Cache for 1 hour
+                    palette = color_thief.get_palette(color_count=3, quality=1)
+                    dominant_color = palette[0]
+                    cache.set(cache_key, dominant_color, timeout=3600)
                 except Exception as e:
                     print(f"Error calculating dominant color: {e}")
                     return None
         return dominant_color
 
+    def get_secondary_color(self, obj):
+        cache_key = f"club_{obj.id}_secondary_color"
+        secondary = cache.get(cache_key)
+        if not secondary:
+            if obj.banner and os.path.exists(obj.banner.path):
+                try:
+                    palette = ColorThief(obj.banner.path).get_palette(color_count=3, quality=1)
+                    if len(palette) > 1:
+                        secondary = palette[1]
+                        cache.set(cache_key, secondary, timeout=3600)
+                except Exception as e:
+                    print(f"Error calculating secondary color: {e}")
+                    return None
+        return secondary
+
+    def get_tertiary_color(self, obj):
+        cache_key = f"club_{obj.id}_tertiary_color"
+        tertiary = cache.get(cache_key)
+        if not tertiary:
+            if obj.banner and os.path.exists(obj.banner.path):
+                try:
+                    palette = ColorThief(obj.banner.path).get_palette(color_count=3, quality=1)
+                    if len(palette) > 2:
+                        tertiary = palette[2]
+                        cache.set(cache_key, tertiary, timeout=3600)
+                except Exception as e:
+                    print(f"Error calculating tertiary color: {e}")
+                    return None
+        return tertiary
+
     def get_shadow_color(self, obj):
-        """
-        Get the shadow color based on the dominant color, with caching.
-        """
         cache_key = f"club_{obj.id}_shadow_color"
         shadow_color = cache.get(cache_key)
         if not shadow_color:
             dominant_color = self.get_dominant_color(obj)
             if dominant_color:
                 try:
-                    # Convert RGB to HLS (Hue, Lightness, Saturation)
                     r, g, b = [x / 255.0 for x in dominant_color]
                     h, l, s = colorsys.rgb_to_hls(r, g, b)
-
-                    # Darken and desaturate the color more aggressively
-                    l = max(0, l * 0.3)  # Reduce lightness more
-                    s = max(0, s * 0.5)  # Optionally reduce saturation further
-
-                    # Convert back to RGB
+                    l = max(0, l * 0.3)
+                    s = max(0, s * 0.5)
                     r, g, b = colorsys.hls_to_rgb(h, l, s)
                     shadow_color = [int(r * 255), int(g * 255), int(b * 255)]
-                    cache.set(cache_key, shadow_color, timeout=2592000)  # Cache for 30 days
+                    cache.set(cache_key, shadow_color, timeout=2592000)
                 except Exception as e:
                     print(f"Error calculating shadow color: {e}")
                     return None

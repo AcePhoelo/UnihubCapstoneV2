@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './ClubDirectory.css';
 import logo from '../../assets/logo.png';
@@ -8,9 +8,10 @@ import facebook from '../../assets/facebook.png';
 import instagram from '../../assets/instagram.png';
 import youtube from '../../assets/youtube.png';
 import linkedin from '../../assets/linkedin.png';
-import { motion } from 'framer-motion';
 import ColorThief from 'colorthief';
 import chroma from 'chroma-js';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const createGradientFromPalette = (palette, stops = 4) => {
     const colors = palette.map(c => `rgb(${c.join(',')})`);
@@ -22,6 +23,8 @@ const ClubDirectory = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
+    
+
     const [currentUserName, setCurrentUserName] = useState('');
     const [currentUserProfilePic, setCurrentUserProfilePic] = useState('');
     const [clubs, setClubs] = useState([]);
@@ -30,7 +33,26 @@ const ClubDirectory = () => {
 
     const isGuest = localStorage.getItem('isGuest') === 'true';
 
-    // Set the current user's profile information from localStorage on component mount
+    const pinnedClubs = clubs.slice(0, 3);
+    const [featuredIndex, setFeaturedIndex] = useState(0);
+    const intervalRef = useRef(null);
+    
+    useEffect(() => {
+        if (pinnedClubs.length === 0) return;
+        intervalRef.current = setInterval(() => {
+            setFeaturedIndex(i => (i + 1) % pinnedClubs.length);
+        }, 5000);
+        return () => clearInterval(intervalRef.current);
+    }, [pinnedClubs.length]);
+
+    const pauseAutoplay = () => clearInterval(intervalRef.current);
+    const resumeAutoplay = () => {
+        clearInterval(intervalRef.current);
+        intervalRef.current = setInterval(() => {
+            setFeaturedIndex(i => (i + 1) % pinnedClubs.length);
+        }, 5000);
+    };
+
     useEffect(() => {
         const currentUserData = JSON.parse(localStorage.getItem('profile') || '{}');
         const profilePicUrl = currentUserData.profile_picture || '';
@@ -39,7 +61,6 @@ const ClubDirectory = () => {
         setCurrentUserProfilePic(profilePicUrl.startsWith('http') ? profilePicUrl : 
                                 profilePicUrl ? `http://127.0.0.1:8000${profilePicUrl}` : '');
                                 
-        // Rest of club fetching logic
         (async () => {
             setLoading(true);
             try {
@@ -105,6 +126,7 @@ const ClubDirectory = () => {
     };
 
     const featuredClub = clubs[0];
+    const current = pinnedClubs[featuredIndex] || { hoverColor: '' };
 
     if (loading) {
         return (
@@ -182,35 +204,53 @@ const ClubDirectory = () => {
             <div
                 className={`club-body fade ${!loading ? 'visible' : ''}`}
                 style={{
-                    backgroundImage: featuredClub
-                        ? `linear-gradient(to bottom, ${featuredClub.hoverColor} 0%, rgba(250,250,250,0) 50%)`
+                    backgroundImage: current.hoverColor
+                        ? `linear-gradient(to bottom, ${current.hoverColor} 0%, rgba(250,250,250,0) 50%)`
                         : undefined,
-                }}
+                }}
             >
-                {!loading && featuredClub && (
-                    <div className="featured-club">
+                {!loading && pinnedClubs.length > 0 && (
+                    <div 
+                        className="featured-club"
+                        onMouseEnter={pauseAutoplay}
+                        onMouseLeave={resumeAutoplay}
+                    >
+                        <button
+                            className="arrow left-arrow"
+                            onClick={() => setFeaturedIndex((featuredIndex - 1 + pinnedClubs.length) % pinnedClubs.length)}
+                        >
+                            <ChevronLeft />
+                        </button>
                         <motion.div
                             className="featured-club-box"
-                            initial={{ opacity: 0, y: -20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.5 }}
+                            key={pinnedClubs[featuredIndex].id}
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.3 }}
                             whileHover={{ scale: 1.03 }}
                             style={{
-                                '--hover-bg': featuredClub.hoverBackground,
-                                '--hover-shadow': featuredClub.hoverColor,
+                                '--hover-bg': pinnedClubs[featuredIndex].hoverBackground,
+                                '--hover-shadow': pinnedClubs[featuredIndex].hoverColor,
                                 cursor: 'pointer',
                             }}
-                            onClick={() => navigate(`/club/${featuredClub.id}`)}
+                            onClick={() => navigate(`/club/${pinnedClubs[featuredIndex].id}`)}
                         >
-                            {featuredClub.banner && (
+                            {pinnedClubs[featuredIndex].banner && (
                                 <img
-                                    src={`http://127.0.0.1:8000${featuredClub.banner}`}
-                                    alt={featuredClub.name}
+                                    src={`http://127.0.0.1:8000${pinnedClubs[featuredIndex].banner}`}
+                                    alt={pinnedClubs[featuredIndex].name}
                                     className="featured-club-image"
                                 />
                             )}
-                            <div className="featured-club-name">{featuredClub.name}</div>
+                            <div className="featured-club-name">{pinnedClubs[featuredIndex].name}</div>
                         </motion.div>
+                        <button
+                            className="arrow right-arrow"
+                            onClick={() => setFeaturedIndex((featuredIndex + 1) % pinnedClubs.length)}
+                        >
+                            <ChevronRight />
+                        </button>
                     </div>
                 )}
                 {loading && <div className="loading-text fade visible">Loading...</div>}

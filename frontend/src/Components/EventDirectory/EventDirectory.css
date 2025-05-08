@@ -209,6 +209,34 @@
     background-color: #E9ECEF;
 }
 
+.arrow {
+    background: none;
+    border: none;
+    font-size: 48px;
+    line-height: 5;
+    cursor: pointer;
+    user-select: none;
+    color: #000;
+    padding: 0 16px;
+}
+
+    .arrow svg {
+        width: 64px;
+        height: 64px;
+    }
+
+    .arrow:hover {
+        color: #000;
+    }
+
+.left-arrow {
+    margin-right: 8px;
+}
+
+.right-arrow {
+    margin-left: 8px;
+}
+
 .event-club-icon-placeholder {
     width: 125px;
     height: 125px;

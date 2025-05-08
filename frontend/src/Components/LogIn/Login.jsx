@@ -38,6 +38,7 @@ const Login = () => {
                 localStorage.setItem('access_token', data.access);
                 localStorage.setItem('refresh_token', data.refresh);
                 localStorage.setItem('student_id', student_id);
+                localStorage.setItem('isGuest', 'false');
         
                 const accessToken = localStorage.getItem('access_token');
                 const profileResponse = await fetch('http://127.0.0.1:8000/profile/profile/', {

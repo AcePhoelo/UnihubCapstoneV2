@@ -10,10 +10,12 @@ import deleteIcon from '../../assets/delete_white.png';
 import editIcon from '../../assets/edit.png';
 import Exit from '../../assets/Exit.png';
 import Sidebar from '../CollabSidebar/Sidebar';
+import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { AnimatePresence, motion } from 'framer-motion';
 
 const Event = () => {
     const navigate = useNavigate();
+    const { currentUser } = useCurrentUser();
     const location = useLocation();
     const { eventName } = useParams();
     const decodedName = decodeURIComponent(eventName);
@@ -346,12 +348,21 @@ useEffect(() => {
             }
         }, [event, isGuest]);
 
-    useEffect(() => {
-        if (event && event.created_by_details) {
-            console.log("Event creator details:", event.created_by_details);
-            setIsEventCreator(event.created_by_details.studentid === studentID);
-        }
-    }, [event, studentID]);
+        useEffect(() => {
+            if (event && event.created_by_details) {
+                // Add debug logs to see exact values
+                console.log("Event creator studentid:", event.created_by_details.studentid);
+                console.log("Current studentID from localStorage:", studentID);
+                console.log("Types:", typeof event.created_by_details.studentid, typeof studentID);
+                console.log("Are they equal?", event.created_by_details.studentid === studentID);
+                
+                // Use explicit type conversion to avoid string/number comparison issues
+                const isCreator = String(event.created_by_details.studentid) === String(studentID);
+                console.log("After string conversion:", isCreator);
+                
+                setIsEventCreator(isCreator);
+            }
+        }, [event, studentID]);
 
     const handleDeleteEvent = async () => {
         if (!window.confirm('Are you sure you want to delete this event? This action cannot be undone.')) {
@@ -456,12 +467,17 @@ useEffect(() => {
             formData.append('time', editedTime);
             formData.append('location', editedLocation);
             
+            // Include the club_id if available in the event object
+            if (event.club) {
+                formData.append('club', event.club);
+            }
+            
             if (newBanner) {
                 formData.append('banner', newBanner);
             }
             
             const response = await fetch(`http://127.0.0.1:8000/api/event/add_event/${event.id}/`, {
-                method: 'PUT',
+                method: 'PATCH', // Use PATCH instead of PUT for partial updates
                 headers: {
                     'Authorization': `Bearer ${token}`
                 },
@@ -477,14 +493,28 @@ useEffect(() => {
                     navigate(`/event/${encodeURIComponent(updatedEvent.name)}`);
                 }
             } else {
-                console.error('Failed to update event');
+                // Better error handling - show the actual error message
+                const errorData = await response.json().catch(() => ({}));
+                console.error('Failed to update event:', errorData);
+                
+                // Display a more helpful error message
+                const errorMessage = errorData.detail || 
+                                    Object.values(errorData).flat().join(', ') || 
+                                    'Failed to update event';
+                alert(`Error: ${errorMessage}`);
             }
         } catch (err) {
             console.error('Error updating event:', err);
+            alert('Error updating event: ' + err.message);
         }
     };
 
-    const handleRegisterClick = () => navigate(`/register-event/${encodeURIComponent(decodedName)}`);
+    const handleRegisterClick = () => {
+        if (isGuest) {
+            navigate('/login');
+            return;
+        }
+        navigate(`/register-event/${encodeURIComponent(decodedName)}`) };
     const handleNav = path => () => navigate(path);
 
     const handleRemoveParticipant = async (participantId) => {
@@ -609,7 +639,7 @@ useEffect(() => {
                         <div className="event-banner-left">
                             {(isEventCreator || isClubLeaderForEvent) ? (
                                 <div className="event-delete-info" onClick={handleDeleteEvent}>
-                                    <img src={deleteIcon} alt="Delete Icon" className="delete-icon" />
+                                    <img src={deleteIcon} alt="Delete Icon" className="event-delete-icon" />
                                     <div className="event-delete-title">Delete Event</div>
                                 </div>
                             ) : (

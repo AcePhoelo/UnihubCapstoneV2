@@ -305,7 +305,6 @@ const Calendar = () => {
         <div className="calendar-page">
         <div className="navbar">
             <img src={logo} alt="Logo" className="curtin-logo" onClick={handleLogoClick} />
-
             <div className="navbar-text">
                 <div
                     className="clubs-navbar"
@@ -332,31 +331,33 @@ const Calendar = () => {
                 )}
             </div>
             <div className="navbar-right">
-                <div
-                    className="profile-icon"
-                    onClick={() => navigate(isGuest ? '/login' : '/profile')}
-                    style={{
-                        cursor: 'pointer',
-                        fontSize: isGuest ? '14px' : '24px',
-                        backgroundImage: currentUserProfilePic
-                            ? `url(${currentUserProfilePic})`
-                            : undefined,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                    }}
-                >
-                    {isGuest ? 'LOGIN' : currentUserProfilePic ? '' : getInitials(studentName || "John BROWN")}
-                </div>
-                <img src={calendar} alt="Calendar" className="calendar-icon"
+                {!isGuest ? (
+                    <div
+                        className="profile-icon"
+                        onClick={handleProfileClick}
+                        style={{
+                            backgroundImage: currentUserProfilePic ? `url(${currentUserProfilePic})` : 'none',
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                            cursor: 'pointer',
+                        }}
+                    >
+                        {!currentUserProfilePic && getInitials(studentName || "John BROWN")}
+                    </div>
+                ) : (
+                    <div className="profile-icon guest" onClick={() => navigate('/login')}>
+                        LOGIN
+                    </div>
+                )}
+                <img
+                    src={calendar}
+                    alt="Calendar"
+                    className="calendar-icon"
                     onClick={handleCalendarClick}
                     style={{ cursor: 'pointer' }}
                 />
             </div>
         </div>
-
             <div className="calendar-container">
                 <div className="timezone-info">
                     All events shown in Asia/Singapore time.

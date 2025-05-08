@@ -147,7 +147,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Media files settings
 MEDIA_URL = '/assets/'  # URL path for accessing media files
-MEDIA_ROOT = BASE_DIR.parent / 'my-app' / 'src' / 'assets'  # Absolute path to the assets folder
+MEDIA_ROOT = BASE_DIR.parent / 'frontend' / 'src' / 'assets'  # Absolute path to the assets folder
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/

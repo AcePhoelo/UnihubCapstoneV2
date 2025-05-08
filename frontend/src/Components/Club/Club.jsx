@@ -375,61 +375,61 @@ const Club = () => {
 
     return (
         <div className="club-page">
-            <div className="navbar">
-                <img src={logo} alt="Logo" className="curtin-logo" onClick={handleNav('/club-directory')} />
-                <div className="navbar-text">
-                    <div
-                        className="clubs-navbar"
-                        onClick={handleNav('/club-directory')}
-                        style={{ color: location.pathname === '/club-directory' ? '#000' : '#999' }}
-                    >
-                        Clubs
-                    </div>
-                    <div
-                        className="events-navbar"
-                        onClick={handleNav('/event-directory')}
-                        style={{ color: location.pathname === '/event-directory' ? '#000' : '#999' }}
-                    >
-                        Events
-                    </div>
-                    {!isGuest && (
-                        <div
-                            className="activity-navbar"
-                            onClick={handleNav('/my-activity')}
-                            style={{ color: location.pathname === '/my-activity' ? '#000' : '#999' }}
-                        >
-                            My Activity
-                        </div>
-                    )}
-                </div>
-                <div className="navbar-right">
-                    {!isGuest ? (
-                        <div
-                            className="profile-icon"
-                            onClick={handleNav('/profile')}
-                            style={{
-                                backgroundImage: profilePicture ? `url(${profilePicture})` : 'none',
-                                backgroundSize: 'cover',
-                                backgroundPosition: 'center',
-                                cursor: 'pointer',
-                            }}
-                        >
-                            {!profilePicture && getInitials(studentName)}
-                        </div>
-                    ) : (
-                        <div className="profile-icon guest" onClick={handleNav('/login')}>
-                            LOGIN
-                        </div>
-                    )}
-                    <img
-                        src={calendar}
-                        alt="Calendar"
-                        className="calendar-icon"
-                        onClick={handleNav('/calendar')}
-                        style={{ cursor: 'pointer' }}
-                    />
-                </div>
+<div className="navbar">
+    <img src={logo} alt="Logo" className="curtin-logo" onClick={handleNav('/club-directory')} />
+    <div className="navbar-text">
+        <div
+            className="clubs-navbar"
+            onClick={handleNav('/club-directory')}
+            style={{ color: location.pathname === '/club-directory' ? '#000000' : '#999999' }}
+        >
+            Clubs
+        </div>
+        <div
+            className="events-navbar"
+            onClick={handleNav('/event-directory')}
+            style={{ color: location.pathname === '/event-directory' ? '#000000' : '#999999' }}
+        >
+            Events
+        </div>
+        {!isGuest && (
+            <div
+                className="activity-navbar"
+                onClick={handleNav('/my-activity')}
+                style={{ color: location.pathname === '/my-activity' ? '#000000' : '#999999' }}
+            >
+                My Activity
             </div>
+        )}
+    </div>
+    <div className="navbar-right">
+        {!isGuest ? (
+            <div
+                className="profile-icon"
+                onClick={handleNav('/profile')}
+                style={{
+                    backgroundImage: profilePicture ? `url(${profilePicture})` : 'none',
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                    cursor: 'pointer',
+                }}
+            >
+                {!profilePicture && getInitials(studentName)}
+            </div>
+        ) : (
+            <div className="profile-icon guest" onClick={handleNav('/login')}>
+                LOGIN
+            </div>
+        )}
+        <img
+            src={calendar}
+            alt="Calendar"
+            className="calendar-icon"
+            onClick={handleNav('/calendar')}
+            style={{ cursor: 'pointer' }}
+        />
+    </div>
+</div>
 
             <div className="club-page-body">
                 <div className="club-banner-wrapper" style={{ background: bgOverlay }}>
@@ -452,7 +452,7 @@ const Club = () => {
                         <div className="club-banner-left">
                             {isClubPresident ? (
                                 <div className="club-delete-info" onClick={handleDeleteClub}>
-                                    <img src={deleteIcon} alt="Delete" className="delete-icon" />
+                                    <img src={deleteIcon} alt="Delete" className="club-delete-icon" />
                                     <div className="club-delete-title">Delete Club</div>
                                 </div>
                             ) : (
@@ -567,7 +567,7 @@ const Club = () => {
                                 <>
                                     <div style={{ position: 'relative' }}>
                                         <textarea
-                                            className="edit-description-textarea"
+                                            className="edit-club-description-textarea"
                                             value={descriptionText}
                                             onChange={e => {
                                                 if (e.target.value.length <= maxDescriptionLength) {

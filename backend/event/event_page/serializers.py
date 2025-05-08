@@ -14,26 +14,59 @@ class ClubEventPageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ClubEventPage
-        fields = ['id', 'title', 'description', 'banner_image', 'club_logo'] #, 'club_logo' <-- add this to add logo
+        fields = ['id', 'title', 'description', 'banner_image', 'club_logo', 'dominant_color', 'secondary_color', 'tertiary_color', 'shadow_color'] #, 'club_logo' <-- add this to add logo
 
 
-        def get_dominant_color(self, obj):
-            cache_key = f"event_{obj.id}_dominant_color"
-            dominant_color = cache.get(cache_key)
-            if not dominant_color and obj.banner and os.path.exists(obj.banner.path):
+    def get_dominant_color(self, obj):
+        cache_key = f"event_{obj.id}_dominant_color"
+        dominant_color = cache.get(cache_key)
+        if not dominant_color:
+            if obj.banner and os.path.exists(obj.banner.path):
                 try:
                     color_thief = ColorThief(obj.banner.path)
-                    dominant_color = color_thief.get_color(quality=1)
+                    palette = color_thief.get_palette(color_count=3, quality=1)
+                    dominant_color = palette[0]
                     cache.set(cache_key, dominant_color, timeout=3600)
                 except Exception as e:
                     print(f"Error calculating dominant color: {e}")
-            return dominant_color
+                    return None
+        return dominant_color
 
-        def get_shadow_color(self, obj):
-            cache_key = f"event_{obj.id}_shadow_color"
-            shadow_color = cache.get(cache_key)
-            if not shadow_color:
-                dominant_color = self.get_dominant_color(obj)
+    def get_secondary_color(self, obj):
+        cache_key = f"event_{obj.id}_secondary_color"
+        secondary = cache.get(cache_key)
+        if not secondary:
+            if obj.banner and os.path.exists(obj.banner.path):
+                try:
+                    palette = ColorThief(obj.banner.path).get_palette(color_count=3, quality=1)
+                    if len(palette) > 1:
+                        secondary = palette[1]
+                        cache.set(cache_key, secondary, timeout=3600)
+                except Exception as e:
+                    print(f"Error calculating secondary color: {e}")
+                    return None
+        return secondary
+
+    def get_tertiary_color(self, obj):
+        cache_key = f"club_{obj.id}_tertiary_color"
+        tertiary = cache.get(cache_key)
+        if not tertiary:
+            if obj.banner and os.path.exists(obj.banner.path):
+                try:
+                    palette = ColorThief(obj.banner.path).get_palette(color_count=3, quality=1)
+                    if len(palette) > 2:
+                        tertiary = palette[2]
+                        cache.set(cache_key, tertiary, timeout=3600)
+                except Exception as e:
+                    print(f"Error calculating tertiary color: {e}")
+                    return None
+        return tertiary
+
+    def get_shadow_color(self, obj):
+        cache_key = f"event_{obj.id}_shadow_color"
+        shadow_color = cache.get(cache_key)
+        if not shadow_color:
+            dominant_color = self.get_dominant_color(obj)
             if dominant_color:
                 try:
                     r, g, b = [x / 255.0 for x in dominant_color]
@@ -45,8 +78,6 @@ class ClubEventPageSerializer(serializers.ModelSerializer):
                     cache.set(cache_key, shadow_color, timeout=2592000)
                 except Exception as e:
                     print(f"Error calculating shadow color: {e}")
-            return shadow_color
-
-    #def get_club_logo(self, obj):
-    #   return '/media/club_logos/dlogo.png'
+                    return None
+        return shadow_color
 

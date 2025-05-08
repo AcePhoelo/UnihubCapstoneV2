@@ -26,6 +26,18 @@ def verify_user(request):
             'profile': {
                 'full_name': student.full_name if hasattr(student, 'full_name') else f"{user.first_name} {user.last_name}",
                 'profile_picture': student.profile_picture.url if student.profile_picture else None,
+                'studentid': student.studentid,
+                # Add leadership clubs to the response
+                'leadership_clubs': [
+                    {
+                        'id': club.id,
+                        'name': club.name,
+                        'description': club.description,
+                        'banner': club.banner.url if club.banner else None,
+                        'logo': club.logo.url if club.logo else None
+                    }
+                    for club in student.leadership_clubs.all()
+                ]
             }
         })
     except Student.DoesNotExist:
