@@ -56,67 +56,81 @@ const ClubDirectory = () => {
     useEffect(() => {
         const currentUserData = JSON.parse(localStorage.getItem('profile') || '{}');
         const profilePicUrl = currentUserData.profile_picture || '';
-        
+
         setCurrentUserName(currentUserData.full_name || currentUserData.name || '');
-        setCurrentUserProfilePic(profilePicUrl.startsWith('http') ? profilePicUrl : 
-                                profilePicUrl ? `http://127.0.0.1:8000${profilePicUrl}` : '');
-                                
-        (async () => {
+        setCurrentUserProfilePic(
+            profilePicUrl.startsWith('http') ? profilePicUrl :
+            profilePicUrl ? `http://127.0.0.1:8000${profilePicUrl}` : ''
+        );
+
+        const fetchClubs = async () => {
             setLoading(true);
+            const isGuest = localStorage.getItem('isGuest') === 'true';
+            const token = localStorage.getItem('access_token');
+
+            const headers = { 'Content-Type': 'application/json' };
+            if (!isGuest && token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
             try {
-                const token = localStorage.getItem('access_token');
-                const res = await fetch('http://127.0.0.1:8000/clubs/', {
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
-                });
-                if (res.status === 401) {
+                const res = await fetch('http://127.0.0.1:8000/clubs/clubs/', { headers });
+
+                if (res.status === 401 && !isGuest) {
                     throw new Error('Unauthorized');
                 }
+
                 const data = await res.json();
 
-                const enriched = await Promise.all(
-                    data.map(async club => {
-                        try {
-                            const imgRes = await fetch(`http://127.0.0.1:8000${club.banner}`);
-                            const blob = await imgRes.blob();
-                            const url = URL.createObjectURL(blob);
-                            const img = new Image();
-                            img.src = url;
-                            await new Promise(r => (img.onload = r));
-                            const palette = new ColorThief().getPalette(img, 3);
-                            URL.revokeObjectURL(url);
-                            const [r, g, b] = palette[0];
-                            return {
-                                ...club,
-                                hoverBackground: createGradientFromPalette(palette, 4),
-                                hoverColor: `rgb(${r}, ${g}, ${b})`,
-                            };
-                        } catch {
-                            return {
-                                ...club,
-                                hoverBackground: 'linear-gradient(to right, #ccc, #eee)',
-                                hoverColor: 'rgba(200,200,200,0.5)',
-                            };
-                        }
-                    })
-                );
+                const enriched = await Promise.all(data.map(async club => {
+                    try {
+                        const imgRes = await fetch(`http://127.0.0.1:8000${club.banner}`);
+                        const blob = await imgRes.blob();
+                        const url = URL.createObjectURL(blob);
+                        const img = new Image();
+                        img.src = url;
+
+                        await new Promise((resolve, reject) => {
+                            img.onload = () => resolve(true);
+                            img.onerror = reject;
+                        });
+
+                        const palette = new ColorThief().getPalette(img, 3);
+                        URL.revokeObjectURL(url);
+                        const [r, g, b] = palette[0];
+
+                        return {
+                            ...club,
+                            hoverBackground: createGradientFromPalette(palette, 4),
+                            hoverColor: `rgb(${r}, ${g}, ${b})`,
+                        };
+                    } catch {
+                        return {
+                            ...club,
+                            hoverBackground: 'linear-gradient(to right, #ccc, #eee)',
+                            hoverColor: 'rgba(200,200,200,0.5)',
+                        };
+                    }
+                }));
+
                 setClubs(enriched);
             } catch (e) {
+                console.error(e);
                 if (e.message === 'Unauthorized') {
                     localStorage.removeItem('access_token');
                     navigate('/login');
                     setError('Unauthorized: please log in again.');
                 } else {
-                    console.error(e);
-                    setError('Failed to fetch clubs.');
+                    setError(isGuest ? 'Failed to load public club list.' : 'Failed to fetch clubs.');
                 }
             } finally {
                 setLoading(false);
             }
-        })();
+        };
+
+        fetchClubs();
     }, [navigate]);
+
 
     const handleNav = path => () => navigate(path);
 

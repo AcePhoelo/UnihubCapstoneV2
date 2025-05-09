@@ -1,6 +1,6 @@
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.pagination import PageNumberPagination
 from .models import Club, ClubMembership 
 from .forms import UpdatePositionForm
@@ -11,7 +11,7 @@ class MemberPagination(PageNumberPagination):
     page_size = 10
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def get_club_members(request, club_id):
     """
     Retrieve all members of a specific club.
@@ -28,7 +28,7 @@ def get_club_members(request, club_id):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])  # Ensure the user is authenticated
+@permission_classes([AllowAny])  # Ensure the user is authenticated
 def get_clubs_list(request):
     clubs = Club.objects.all()  # Fetch all clubs
     serializer = ClubListSerializer(clubs, many=True)  # Use the simplified serializer
@@ -36,7 +36,7 @@ def get_clubs_list(request):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def get_clubs(request):
     """
     Retrieve a list of all clubs.
@@ -46,7 +46,7 @@ def get_clubs(request):
     return Response(serializer.data)
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def get_club_details(request, club_id):
     """
     Fetch details of a specific club, including its members.

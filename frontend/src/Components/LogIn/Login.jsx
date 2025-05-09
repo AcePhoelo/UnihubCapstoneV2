@@ -11,9 +11,13 @@ const Login = () => {
     const [isLoading, setIsLoading] = useState(false);
 
     const handleGuestClick = () => {
-        const eventName = "Board Game Tournament";
-        window.open("/feedback/" + encodeURIComponent(eventName), '_blank');
+        localStorage.setItem('isGuest', 'true');
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('profile');
+        navigate('/club-directory');
     };
+
 
     const handleLoginClick = async () => {
         if (!student_id || !password) {

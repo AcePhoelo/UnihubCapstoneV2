@@ -20,6 +20,7 @@ from .views import (
 urlpatterns = [
     # Club endpoints
     path('', get_clubs, name='get_clubs'),  # Endpoint to retrieve all clubs
+    path('clubs/', get_clubs, name='get_clubs'),
     path('clubs/<int:club_id>/', get_club_details, name='get_club_details'),  # GET club details
     path('clubs/create/', create_club, name='create_club'),  # POST create a new club
     path('clubs/<int:club_id>/update/', update_club, name='update_club'),  # PUT update a club
