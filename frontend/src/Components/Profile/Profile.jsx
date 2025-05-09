@@ -1,5 +1,5 @@
 /* Profile.jsx */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation, useParams } from 'react-router-dom';
 import './Profile.css';
 import logo from '../../assets/logo.png';
@@ -30,6 +30,10 @@ const Profile = () => {
     const [membershipClubs, setMembershipClubs] = useState([]);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [isEditingProfilePic, setIsEditingProfilePic] = useState(false);
+    const [newProfilePicture, setNewProfilePicture] = useState(null);
+    const [profilePicPreview, setProfilePicPreview] = useState(null);
+    const profilePicInputRef = useRef(null);
 
     // Set the current user's profile information from localStorage on component mount
     useEffect(() => {
@@ -130,18 +134,14 @@ const Profile = () => {
     const renderProfileActions = () => {
         if (isOwnProfile) {
             return (
-                <>
-                    <div className="create-club-container">
-                        <div className="create-club" onClick={handleCreateClick}>
-                            Create Club
-                        </div>
+                <div className="profile-action-buttons">
+                    <div className="create-club" onClick={handleCreateClick}>
+                        Create Club
                     </div>
-                    <div className="logout-container">
-                        <button className="logout-button" onClick={logout}>
-                            Log Out
-                        </button>
-                    </div>
-                </>
+                    <button className="logout-button" onClick={logout}>
+                        Log Out
+                    </button>
+                </div>
             );
         }
         return null;
@@ -172,6 +172,57 @@ const Profile = () => {
     };
 
     const handleNav = path => () => navigate(path);
+    const handleProfilePicChange = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        let previewUrl; // Define previewUrl at the function level so it's accessible in finally block
+        
+        try {
+            // Show temporary preview while uploading
+            previewUrl = URL.createObjectURL(file); // Assign to the variable instead of declaring with const
+            setProfilePicture(previewUrl);
+            
+            const formData = new FormData();
+            formData.append('profile_picture', file);
+            
+            const accessToken = localStorage.getItem('access_token');
+            const response = await fetch('http://127.0.0.1:8000/profile/update-picture/', {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${accessToken}`,
+                },
+                body: formData
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                
+                // Update profile picture in state and localStorage
+                const profilePicUrl = data.profile_picture;
+                setProfilePicture(profilePicUrl);
+                setCurrentUserProfilePic(profilePicUrl);
+                
+                // Update localStorage profile
+                const currentProfile = JSON.parse(localStorage.getItem('profile') || '{}');
+                currentProfile.profile_picture = profilePicUrl;
+                localStorage.setItem('profile', JSON.stringify(currentProfile));
+                
+            } else {
+                const errorText = await response.text();
+                console.error('Failed to update profile picture:', errorText);
+                // Optionally show an error message to the user
+            }
+        } catch (err) {
+            console.error('Error updating profile picture:', err);
+            // Optionally show an error message to the user
+        } finally {
+            // Clean up any preview URL if needed
+            if (previewUrl) {
+                URL.revokeObjectURL(previewUrl);
+            }
+        }
+    };
 
     if (error) return <div className="error-text">{error}</div>;
 
@@ -234,73 +285,83 @@ const Profile = () => {
             </div>
 
             <div className="profile-container">
-                <motion.div
-                    className="name-box"
-                    initial={{ y: -100, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ duration: 0.6 }}
+    <motion.div
+        className="name-box"
+        initial={{ y: -100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6 }}
+    >
+        <div className="name-title-container">
+            <div className="profile-pic-container">
+                <div
+                    className="main-profile-icon"
+                    style={{
+                        backgroundImage: `url(${profilePicture || ''})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        cursor: isOwnProfile ? 'pointer' : 'default',
+                    }}
+                    onClick={isOwnProfile ? () => profilePicInputRef.current.click() : undefined}
                 >
-                    <div className="name-title-container">
-                        <div
-                            className="main-profile-icon"
-                            style={{
-                                backgroundImage: `url(${profilePicture || ''})`,
-                                backgroundSize: 'cover',
-                                backgroundPosition: 'center',
-                                width: '120px',
-                                height: '120px',
-                                borderRadius: '50%',
-                            }}
-                        >
-                            {!profilePicture && getInitials(studentName || 'Unknown Student')}
-                        </div>
-                        <div className="name-title">{studentName || 'Unknown Student'}</div>
-                    </div>
-                    <div className="main-buttons">
-                        {renderProfileActions()}
-                    </div>
-                </motion.div>
-
-                <div className="detail-leadership-row">
-                    <motion.div
-                        className="detail-box"
-                        initial={{ x: -100, opacity: 0 }}
-                        animate={{ x: 0, opacity: 1 }}
-                        transition={{ duration: 0.6, delay: 0.2 }}
-                    >
-                        <div className="box-title">User Details</div>
-                        <div className="email-detail">
-                            <div className="box-subtitle">Email address</div>
-                            <div className="box-information">{studentEmail || 'Unknown Email'}</div>
-                            <div className="box-text">(Visible to other platform users)</div>
-                        </div>
-                        <div className="ID-detail">
-                            <div className="box-subtitle">StudentID</div>
-                            <div className="box-information">{studentID || 'Unknown ID'}</div>
-                        </div>
-                    </motion.div>
-
-                    <motion.div
-                        className="leadership-box"
-                        initial={{ x: 100, opacity: 0 }}
-                        animate={{ x: 0, opacity: 1 }}
-                        transition={{ duration: 0.6, delay: 0.3 }}
-                    >
-                        <div className="box-title">Club Leadership</div>
-                        <div className="club-content">{renderClubList(leadershipClubs, 'leadership')}</div>
-                    </motion.div>
+                    {!profilePicture && getInitials(studentName || 'Unknown Student')}
                 </div>
+            </div>
+            <div className="name-title">{studentName || 'Unknown Student'}</div>
+        </div>
 
-                <motion.div
-                    className="membership-box"
-                    initial={{ y: 100, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ duration: 0.6, delay: 0.4 }}
-                >
-                    <div className="box-title">Memberships</div>
-                    <div className="club-content">{renderClubList(membershipClubs, 'membership')}</div>
-                </motion.div>
+        <div className="main-buttons">
+            {renderProfileActions()}
+
+        </div>
+    </motion.div>
+
+    <div className="detail-leadership-row">
+        <motion.div
+            className="detail-box"
+            initial={{ x: -100, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+        >
+            <div className="box-title">User Details</div>
+            <div className="email-detail">
+                <div className="box-subtitle">Email address</div>
+                <div className="box-information">{studentEmail || 'Unknown Email'}</div>
+                <div className="box-text">(Visible to other platform users)</div>
+            </div>
+            <div className="ID-detail">
+                <div className="box-subtitle">StudentID</div>
+                <div className="box-information">{studentID || 'Unknown ID'}</div>
+            </div>
+        </motion.div>
+
+        <motion.div
+            className="leadership-box"
+            initial={{ x: 100, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+        >
+            <div className="box-title">Club Leadership</div>
+            <div className="club-content">{renderClubList(leadershipClubs, 'leadership')}</div>
+        </motion.div>
+    </div>
+
+    <motion.div
+        className="membership-box"
+        initial={{ y: 100, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6, delay: 0.4 }}
+    >
+        <div className="box-title">Memberships</div>
+        <div className="club-content">{renderClubList(membershipClubs, 'membership')}</div>
+    </motion.div>
                  </div>
+                 <input
+                    type="file"
+                    ref={profilePicInputRef}
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={handleProfilePicChange}
+                />
                 </div>
     );
 };

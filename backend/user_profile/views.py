@@ -3,8 +3,9 @@ from django.contrib.auth.decorators import login_required
 from .models import Student
 from rest_framework.response import Response
 from .serializers import StudentSerializer
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, parser_classes
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.parsers import MultiPartParser, FormParser
 @login_required
 def student_list(request):
     students = Student.objects.all()
@@ -66,3 +67,31 @@ def get_user_profile(request):
         except Student.DoesNotExist:
             return Response({"error": "Student profile not found"}, status=404)
     return Response({"error": "User not authenticated"}, status=401)
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+@parser_classes([MultiPartParser, FormParser])
+def update_profile_picture(request):
+    """Update the profile picture of the currently logged-in user."""
+    try:
+        student = Student.objects.get(user=request.user)
+        
+        if 'profile_picture' in request.FILES:
+            # Delete old profile picture if exists to avoid storage issues
+            if student.profile_picture:
+                student.profile_picture.delete(save=False)
+                
+            student.profile_picture = request.FILES['profile_picture']
+            student.save()
+            
+            # Build absolute URL for the profile picture
+            profile_pic_url = request.build_absolute_uri(student.profile_picture.url) if student.profile_picture else None
+            
+            return Response({
+                'success': True,
+                'profile_picture': profile_pic_url
+            }, status=200)
+        
+        return Response({'error': 'No profile picture provided'}, status=400)
+    except Student.DoesNotExist:
+        return Response({'error': 'Student profile not found'}, status=404)
