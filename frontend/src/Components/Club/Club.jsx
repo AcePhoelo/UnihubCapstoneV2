@@ -125,46 +125,48 @@ const [selectedNewPresident, setSelectedNewPresident] = useState(null);
             .join('');
 
     const fetchClubDetails = async () => {
-            try {
-                const token = localStorage.getItem('access_token');
-                const userProfile = JSON.parse(localStorage.getItem('profile') || '{}');
-                const response = await fetch(`http://127.0.0.1:8000/clubs/clubs/${club_id}/`, {
-                    method: 'GET',
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    },
-                });
-            
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    console.error(`Error status: ${response.status}, Details:`, errorText);
-                    throw new Error(`Server returned ${response.status}: ${response.statusText}`);
-                    }
-            
-                    const data = await response.json();
-                    console.log('Club API Response:', data);
-                    setClub(data);
-                    if (data.president && data.president.email) {
-                        setPresidentEmail(data.president.email);
-                    }
-            
-                    // Check if the user is the club president - Fix comparison logic
-                    const profile = JSON.parse(localStorage.getItem('profile'));
-                    if (data.president && userProfile) {
-                        // Strict equality check with multiple safety conditions
-                        const isPresident = 
-                            userProfile.studentid && data.president.studentid && 
-                            String(userProfile.studentid) === String(data.president.studentid);
-                                    
-                        setIsClubPresident(!!isPresident); // Convert to boolean for safety
-                    } else {
-                        setIsClubPresident(false);
-                    }
-            if (profile.studentid && data.members) {
+        setLoading(true);
+        try {
+            const isGuest = localStorage.getItem('isGuest') === 'true';
+            const token = localStorage.getItem('access_token');
+            const userProfile = JSON.parse(localStorage.getItem('profile') || '{}');
+
+            const headers = { 'Content-Type': 'application/json' };
+            if (!isGuest && token) {
+                headers.Authorization = `Bearer ${token}`;
+            }
+
+            const response = await fetch(`http://127.0.0.1:8000/clubs/clubs/${club_id}/`, {
+                method: 'GET',
+                headers,
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error(`Error status: ${response.status}, Details:`, errorText);
+                throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            console.log('Club API Response:', data);
+            setClub(data);
+
+            if (data.president?.email) {
+                setPresidentEmail(data.president.email);
+            }
+
+            if (!isGuest && userProfile?.studentid && data.president?.studentid) {
+                const isPresident = String(userProfile.studentid) === String(data.president.studentid);
+                setIsClubPresident(Boolean(isPresident));
+            } else {
+                setIsClubPresident(false);
+            }
+
+            if (!isGuest && userProfile?.studentid && Array.isArray(data.members)) {
                 const isMember = data.members.some(
-                    m => m.studentid === profile.studentid ||
-                        m.student?.studentid === profile.studentid
+                    m =>
+                        m.studentid === userProfile.studentid ||
+                        m.student?.studentid === userProfile.studentid
                 );
                 setIsUserMember(isMember);
                 localStorage.setItem(`club_member_${club_id}`, isMember.toString());
@@ -177,17 +179,25 @@ const [selectedNewPresident, setSelectedNewPresident] = useState(null);
         }
     };
 
+
     const fetchClubEvents = async () => {
         try {
             const token = localStorage.getItem('access_token');
+            const isGuest = localStorage.getItem('isGuest') === 'true';
+
+            const headers = { 'Content-Type': 'application/json' };
+            if (!isGuest && token) headers.Authorization = `Bearer ${token}`;
+
             const resp = await fetch(
-                `http://127.0.0.1:8000/api/event/add_event/?club_id=${club_id}`,
-                { headers: { Authorization: `Bearer ${token}` } }
+                `http://127.0.0.1:8000/api/event/club_events/?club_id=${club_id}`,
+                { headers }
             );
+
             if (!resp.ok) {
                 const txt = await resp.text();
                 throw new Error(`Status ${resp.status}: ${txt}`);
             }
+
             setEvents(await resp.json());
         } catch (err) {
             console.error('Error loading club events:', err);
@@ -195,17 +205,20 @@ const [selectedNewPresident, setSelectedNewPresident] = useState(null);
         }
     };
 
+
     const fetchClubMembers = async () => {
         try {
             const token = localStorage.getItem('access_token');
+            const isGuest = localStorage.getItem('isGuest') === 'true';
+
+            const headers = { 'Content-Type': 'application/json' };
+            if (!isGuest && token) headers.Authorization = `Bearer ${token}`;
+
             const [mResp, rResp] = await Promise.all([
-                fetch(`http://127.0.0.1:8000/clubs/clubs/${club_id}/members/`, {
-                    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
-                }),
-                fetch(`http://127.0.0.1:8000/clubs/clubs/${club_id}/roles/`, {
-                    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
-                })
+                fetch(`http://127.0.0.1:8000/clubs/clubs/${club_id}/members/`, { headers }),
+                fetch(`http://127.0.0.1:8000/clubs/clubs/${club_id}/roles/`, { headers })
             ]);
+
             if (mResp.ok) {
                 const md = await mResp.json();
                 setMembers(
@@ -218,6 +231,7 @@ const [selectedNewPresident, setSelectedNewPresident] = useState(null);
                     }))
                 );
             }
+
             if (rResp.ok) {
                 const rd = await rResp.json();
                 setClubRoles(rd.roles || []);
@@ -226,6 +240,7 @@ const [selectedNewPresident, setSelectedNewPresident] = useState(null);
             console.error('Error fetching members/roles:', err);
         }
     };
+
 
     useEffect(() => { fetchClubDetails(); }, [club_id]);
     useEffect(() => { fetchClubEvents(); }, [club_id]);
@@ -525,13 +540,15 @@ const [selectedNewPresident, setSelectedNewPresident] = useState(null);
                 LOGIN
             </div>
         )}
-        <img
-            src={calendar}
-            alt="Calendar"
-            className="calendar-icon"
-            onClick={handleNav('/calendar')}
-            style={{ cursor: 'pointer' }}
-        />
+        {!isGuest && (
+            <img
+                src={calendar}
+                alt="Calendar"
+                className="calendar-icon"
+                onClick={handleNav('/calendar')}
+                style={{ cursor: 'pointer' }}
+            />
+        )}
     </div>
 </div>
 
@@ -559,12 +576,12 @@ const [selectedNewPresident, setSelectedNewPresident] = useState(null);
                                     <img src={deleteIcon} alt="Delete" className="club-delete-icon" />
                                     <div className="club-delete-title">Delete Club</div>
                                 </div>
-                            ) : (
-                                <div className="club-collaboration-info" onClick={() => setCollabSidebarOpen(true)}>
-                                    <img src={collaborationIcon} alt="Collab" className="collaboration-icon" />
-                                    <div className="club-collaboration-title">Collaboration</div>
+                            ) : !isGuest ? (
+                                <div className="event-collaboration-info" onClick={() => setCollabSidebarOpen(true)}>
+                                    <img src={collaborationIcon} alt="Collaboration Icon" className="collaboration-icon" />
+                                    <div className="event-collaboration-title">Collaboration</div>
                                 </div>
-                            )}
+                            ) : null}
                         </div>
                         <div className="club-banner-center">
                             <img

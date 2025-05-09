@@ -621,36 +621,37 @@ const isEventPassed = () => {
                             LOGIN
                         </div>
                     )}
-                    <img
-                        src={calendar}
-                        alt="Calendar"
-                        className="calendar-icon"
-                        onClick={handleNav('/calendar')}
-                        style={{ cursor: 'pointer' }}
-                    />
+                    {!isGuest && (
+                        <img
+                            src={calendar}
+                            alt="Calendar"
+                            className="calendar-icon"
+                            onClick={handleNav('/calendar')}
+                            style={{ cursor: 'pointer' }}
+                        />
+                    )}
                 </div>
             </div>
 
             <div className={`event-banner-wrapper ${isEditMode ? 'edit-mode' : ''}`} style={{ background: bgOverlay }}>
-            <div className="event-banner">
-                {event.banner && (
-                    <img
-                        src={newBanner ? URL.createObjectURL(newBanner) : event.banner}
-                        alt="Event Banner"
-                        className="event-banner-img"
-                        onClick={isEditMode ? () => bannerInputRef.current.click() : undefined}
-                        style={isEditMode ? { cursor: 'pointer'} : {}}
+                <div className="event-banner">
+                    {event.banner && (
+                        <img
+                            src={newBanner ? URL.createObjectURL(newBanner) : event.banner}
+                            alt="Event Banner"
+                            className="event-banner-img"
+                            onClick={isEditMode ? () => bannerInputRef.current.click() : undefined}
+                            style={isEditMode ? { cursor: 'pointer' } : {}}
+                        />
+                    )}
+                    <div
+                        className="banner-overlay"
+                        style={{
+                            background: event.banner
+                                ? `linear-gradient(to top, rgb(${event.shadow_color?.join(',')}), transparent)`
+                                : 'transparent'
+                        }}
                     />
-                )}
-                <div
-                    className="banner-overlay"
-                    style={{
-                        background: event.banner
-                            ? `linear-gradient(to top, rgb(${event.shadow_color?.join(',')}), transparent)`
-                            : 'transparent'
-                    }}
-                />
-                    
                     <div className="event-banner-content">
                         <div className="event-banner-left">
                             {(isEventCreator || isClubLeaderForEvent) ? (
@@ -659,10 +660,12 @@ const isEventPassed = () => {
                                     <div className="event-delete-title">Delete Event</div>
                                 </div>
                             ) : (
-                                <div className="event-collaboration-info" onClick={() => setCollabSidebarOpen(true)}>
-                                    <img src={collaborationIcon} alt="Collaboration Icon" className="collaboration-icon" />
-                                    <div className="event-collaboration-title">Collaboration</div>
-                                </div>
+                                !isGuest && (
+                                    <div className="event-collaboration-info" onClick={() => setCollabSidebarOpen(true)}>
+                                        <img src={collaborationIcon} alt="Collaboration Icon" className="collaboration-icon" />
+                                        <div className="event-collaboration-title">Collaboration</div>
+                                    </div>
+                                )
                             )}
                         </div>
                         <div className="event-banner-center">
@@ -681,7 +684,6 @@ const isEventPassed = () => {
                             ) : (
                                 <h1 className="club-page-name">{event.name}</h1>
                             )}
-                            
                             {isEditMode ? (
                                 <div className="event-banner-buttons">
                                     <button className="event-banner-button save-edit" onClick={handleSaveChanges}>
@@ -707,8 +709,8 @@ const isEventPassed = () => {
                                             Edit
                                         </button>
                                     )}
-                                    <button 
-                                        className="register-button" 
+                                    <button
+                                        className="register-button"
                                         onClick={isUserRegistered ? handleCancelRegistration : handleRegisterClick}
                                         style={{
                                             background: isUserRegistered ? '#CF2424' : '#2074AC',
@@ -720,10 +722,10 @@ const isEventPassed = () => {
                             )}
                         </div>
                         <div className="event-banner-right">
-                        <div className="event-participants-info" onClick={toggleParticipantsPanel}>
-                            <img src={membersIcon} alt="Participants Icon" className="participants-icon" />
-                            <div className="event-participants-title">Participants</div>
-                        </div>
+                            <div className="event-participants-info" onClick={toggleParticipantsPanel}>
+                                <img src={membersIcon} alt="Participants Icon" className="participants-icon" />
+                                <div className="event-participants-title">Participants</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -853,27 +855,23 @@ const isEventPassed = () => {
             </div>
 
             <div className="feedback-box">
-                {/* Only show button to club leaders/creators OR to non-guest users after event has passed */}
                 {((isEventCreator || isClubLeaderForEvent) || (!isGuest && isEventPassed())) && (
                     <button
-                    className="feedback-button"
-                    onClick={() => {
-                        if (!isEventPassed()) {
-                        // Event hasn't passed - only club leaders should see this (due to visibility condition)
-                        error2("Feedback is not available until the day after the event.");
-                        } else if (isEventCreator || isClubLeaderForEvent) {
-                        // Event has passed and user is club leader/creator - go to review page
-                        navigate(`/feedback-review/${encodeURIComponent(decodedName)}`);
-                        } else {
-                        // Event has passed and user is regular user - go to feedback submission page
-                        navigate(`/feedback/${encodeURIComponent(decodedName)}`);
-                        }
-                    }}
+                        className="feedback-button"
+                        onClick={() => {
+                            if (!isEventPassed()) {
+                                error2("Feedback is not available until the day after the event.");
+                            } else if (isEventCreator || isClubLeaderForEvent) {
+                                navigate(`/feedback-review/${encodeURIComponent(decodedName)}`);
+                            } else {
+                                navigate(`/feedback/${encodeURIComponent(decodedName)}`);
+                            }
+                        }}
                     >
-                    Feedback
+                        Feedback
                     </button>
                 )}
-                </div>
+            </div>
 
             <AnimatePresence>
                 {showParticipantsPanel && (

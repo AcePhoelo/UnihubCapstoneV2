@@ -201,13 +201,15 @@ const ClubDirectory = () => {
                             LOGIN
                         </div>
                     )}
-                    <img
-                        src={calendar}
-                        alt="Calendar"
-                        className="calendar-icon"
-                        onClick={handleNav('/calendar')}
-                        style={{ cursor: 'pointer' }}
-                    />
+                    {!isGuest && (
+                        <img
+                            src={calendar}
+                            alt="Calendar"
+                            className="calendar-icon"
+                            onClick={handleNav('/calendar')}
+                            style={{ cursor: 'pointer' }}
+                        />
+                    )}
                 </div>
             </div>
 

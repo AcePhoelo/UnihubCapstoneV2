@@ -51,15 +51,13 @@ const EventDirectory = () => {
         const fetchEvents = async () => {
             try {
                 const token = localStorage.getItem('access_token');
-                const resp = await fetch(
-                    'http://127.0.0.1:8000/api/event/add_event/',
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                            'Content-Type': 'application/json',
-                        },
-                    }
-                );
+                const headers = { 'Content-Type': 'application/json' };
+                if (!isGuest && token) headers.Authorization = `Bearer ${token}`;
+
+                const resp = await fetch('http://127.0.0.1:8000/api/event/add_event/', {
+                    headers,
+                });
+
                 if (!resp.ok) {
                     const text = await resp.text();
                     throw new Error(`HTTP ${resp.status}: ${text}`);
@@ -219,12 +217,15 @@ const EventDirectory = () => {
                     >
                         {isGuest ? 'LOGIN' : currentUserProfilePic ? '' : getInitials(currentUserName)}
                     </div>
-                    <img
-                        src={calendar}
-                        alt="Calendar"
-                        className="calendar-icon"
-                        onClick={handleNav('/calendar')}
-                    />
+                    {!isGuest && (
+                                            <img
+                                                src={calendar}
+                                                alt="Calendar"
+                                                className="calendar-icon"
+                                                onClick={handleNav('/calendar')}
+                                                style={{ cursor: 'pointer' }}
+                                            />
+                                        )}
                 </div>
             </div>
 
