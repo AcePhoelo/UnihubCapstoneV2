@@ -162,11 +162,32 @@
 /* Reposition submit button for consistent placement */
 .feedback-submit-container {
     position: relative;
-    right: calc((-20%) - 120px); /* Align with the right edge of container consistently */
-    top: calc(100% + 15px); /* Position directly below container with fixed spacing */
+    right: calc((-16%) - 120px);
+    top: calc(100% + 15px);
     width: auto;
     z-index: 10;
-    transform: translateX(0); /* Prevent any inherited transformations */
+    transform: translateX(0);
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 15px;
+}
+
+.feedback-back {
+    height: 40px;
+    width: 120px;
+    color: #1874AC;
+    background: #ffffff;
+    border: 1px solid #1874AC;
+    border-radius: 6px;
+    font-size: 18px;
+    font-weight: 450;
+    cursor: pointer;
+    font-family: 'Effra', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 

@@ -101,6 +101,11 @@ const Feedback = () => {
         setSelectedRole(eventKey);
     };
 
+    const prevStep = () => {
+        if (step > 1) setStep(step - 1);
+    };
+
+
     const nextStep = () => {
         if (step === 1) {
             if (!selectedRole) {
@@ -169,6 +174,10 @@ const Feedback = () => {
             satisfaction,
             experience: feedbackText,
         };
+
+
+    if (loading) return <div>Loading...</div>;
+    if (error) return <div className="error-message">{error}</div>;
 
         try {
             const token = localStorage.getItem('access_token');
@@ -345,6 +354,9 @@ return (
                 </div>
             </div>
             <div className="feedback-submit-container">
+                        {step > 1 && (
+                            <button className="feedback-back" onClick={prevStep}>Back</button>
+                        )}
                         {step < 3 ? (
                             <button className="feedback-submit" onClick={nextStep}>Next</button>
                         ) : (

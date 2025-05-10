@@ -594,7 +594,7 @@ const isEventPassed = () => {
   return today >= eventDate;
 };
 
-const isEventPassed2 = () => {
+const hasEventPassed = () => {
   if (!event || !event.date) return false;
   
   // Parse event date (format: YYYY-MM-DD) and handle timezone issues
@@ -649,7 +649,20 @@ console.log("- Can edit event:", isEventCreator || isClubLeaderForEvent);
                     )}
                 </div>
                 <div className="navbar-right">
-                    {!isGuest ? (
+                    {isGuest ? (
+                        <div
+                            onClick={handleNav('/login')}
+                            style={{
+                                cursor: 'pointer',
+                                fontSize: '16px',
+                                fontWeight: 'bold',
+                                color: '#000',
+                                fontFamily: 'Effra, sans-serif'
+                            }}
+                        >
+                            LOGIN
+                        </div>
+                    ) : (
                         <div
                             className="profile-icon"
                             onClick={handleNav('/profile')}
@@ -661,10 +674,6 @@ console.log("- Can edit event:", isEventCreator || isClubLeaderForEvent);
                             }}
                         >
                             {!profilePicture && getInitials(studentName)}
-                        </div>
-                    ) : (
-                        <div className="profile-icon guest" onClick={handleNav('/login')}>
-                            LOGIN
                         </div>
                     )}
                     {!isGuest && (
@@ -757,13 +766,13 @@ console.log("- Can edit event:", isEventCreator || isClubLeaderForEvent);
                                     )}
                                         <button
                                             className="register-button"
-                                            onClick={isEventPassed2() ? null : (isUserRegistered ? handleCancelRegistration : handleRegisterClick)}
+                                            onClick={hasEventPassed() ? null : (isUserRegistered ? handleCancelRegistration : handleRegisterClick)}
                                             style={{
-                                                background: isEventPassed2() ? '#999999' : (isUserRegistered ? '#CF2424' : '#2074AC'),
-                                                cursor: isEventPassed2() ? 'default' : 'pointer',
+                                                background: hasEventPassed() ? '#999999' : (isUserRegistered ? '#CF2424' : '#2074AC'),
+                                                cursor: hasEventPassed() ? 'default' : 'pointer',
                                             }}
                                         >
-                                            {isEventPassed2() ? 'Event\'s Over' : (isUserRegistered ? 'Cancel' : 'Register')}
+                                            {hasEventPassed() ? 'Event\'s Over' : (isUserRegistered ? 'Cancel' : 'Register')}
                                         </button>
                                     </div>
                             )}

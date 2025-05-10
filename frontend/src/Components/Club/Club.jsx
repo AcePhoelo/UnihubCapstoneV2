@@ -567,24 +567,33 @@ const Club = () => {
         )}
     </div>
     <div className="navbar-right">
-        {!isGuest ? (
-            <div
-                className="profile-icon"
-                onClick={handleNav('/profile')}
-                style={{
-                    backgroundImage: profilePicture ? `url(${profilePicture})` : 'none',
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    cursor: 'pointer',
-                }}
-            >
-                {!profilePicture && getInitials(studentName)}
-            </div>
-        ) : (
-            <div className="profile-icon guest" onClick={handleNav('/login')}>
-                LOGIN
-            </div>
-        )}
+                    {isGuest ? (
+                        <div
+                            onClick={handleNav('/login')}
+                            style={{
+                                cursor: 'pointer',
+                                fontSize: '16px',
+                                fontWeight: 'bold',
+                                color: '#000',
+                                fontFamily: 'Effra, sans-serif'
+                            }}
+                        >
+                            LOGIN
+                        </div>
+                    ) : (
+                        <div
+                            className="profile-icon"
+                            onClick={handleNav('/profile')}
+                            style={{
+                                backgroundImage: profilePicture ? `url(${profilePicture})` : 'none',
+                                backgroundSize: 'cover',
+                                backgroundPosition: 'center',
+                                cursor: 'pointer',
+                            }}
+                        >
+                            {!profilePicture && getInitials(studentName)}
+                        </div>
+                    )}
         {!isGuest && (
             <img
                 src={calendar}
