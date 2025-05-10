@@ -1,5 +1,5 @@
 from rest_framework import generics
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.filters import OrderingFilter
 from rest_framework.exceptions import PermissionDenied
@@ -107,11 +107,11 @@ class EventRegistrationListView(generics.ListAPIView):
 
 class EventParticipantsListView(generics.ListAPIView):
     """
-    Allows any authenticated user to view the list of participants.
+    Allows any user to view the list of participants.
     """
     serializer_class = EventRegistrationSerializer
     pagination_class = EventRegistrationPagination
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def get_queryset(self):
         event_id = self.kwargs['event_id']

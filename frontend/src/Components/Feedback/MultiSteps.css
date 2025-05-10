@@ -1,56 +1,88 @@
 .steps-container {
     display: flex;
     align-items: center;
-    height: 100vh;
-    padding-left: 100px;
+    justify-content: flex-start;
+    height: auto;
+    margin-top: 80px;
+    padding-right: 20px;
+    position: relative;
+    width: 100%;
+    max-width: 40px;
 }
 
 .custom-progress-container {
     display: flex;
+    flex-direction: column;
     align-items: center;
     position: relative;
-    flex-direction: column;
-    gap: 60px; 
-    width: 200px; 
-    margin-top: -475px;
+    height: 340px;
+    width: 40px;
+    overflow: visible; /* Ensure circles are fully visible */
 }
 
-    .custom-progress-container::before {
-        content: "";
-        position: absolute;
-        background-color: #dddddd;
-        width: 6px; 
-        height: 100%;
-        left: 50%;
-        transform: translateX(-50%);
-        z-index: 0;
-    }
+.custom-progress-container::before {
+    content: "";
+    position: absolute;
+    background-color: #dddddd;
+    width: 4px;
+    height: calc(100% - 30px); /* Subtract circle diameter to prevent overflow */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 0;
+    top: 15px; /* Offset to start from middle of first circle */
+    bottom: 15px; /* Stop at middle of last circle */
+}
+
 
 .progress {
     background-color: #1874AC;
     position: absolute;
-    width: 6px;
+    width: 4px;
     left: 50%;
     transform: translateX(-50%);
-    transition: height 0.8s ease-in;
     z-index: 1;
+    top: 15px; /* Start from middle of first circle */
+    transition: height 0.3s ease;
+    max-height: calc(100% - 30px); /* Prevent extending beyond last circle */
 }
 
 .circle {
-    background-color: #dddddd;
-    height: 30px; 
+    height: 30px;
     width: 30px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 16px; 
+    font-size: 16px;
     font-weight: bold;
-    color: white;
-    position: relative;
+    color: #999;
+    position: absolute;
     z-index: 2;
+    background-color: white;
+    border: 2px solid #dddddd;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
-    .circle.active {
-        background-color: #1874AC;
-    }
+.circle.active {
+    background-color: #1874AC;
+    border-color: #1874AC;
+    color: white;
+}
+
+/* First circle (1) */
+.circle:nth-child(2) {
+    top: 0;
+}
+
+/* Second circle (2) */
+.circle:nth-child(3) {
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* Third circle (3) */
+.circle:nth-child(4) {
+    bottom: 0;
+    top: auto;
+}

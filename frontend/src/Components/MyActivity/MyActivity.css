@@ -189,14 +189,15 @@
 .activity-event-card-wrapper {
     display: flex;
     align-items: stretch;
-    width: 1090px;
+    width: 100%;
+    max-width: 900px;
     cursor: pointer;
 }
 
 .activity-event-card {
     display: flex;
     align-items: stretch;
-    width: 1090px;
+    width: 100%;
     height: 225px;
     border: 1px solid #DDD;
     border-radius: 16px;
@@ -347,16 +348,6 @@
     flex-direction: column;
 }
 
-.activity-stats {
-    width: 240px;
-    margin-top: 80px;
-    margin-right: 160px;
-    display: flex;
-    flex-direction: column;
-    gap: 24px;
-    position: sticky;
-    top: 100px;
-}
 
 .stats-box {
     background: #FFFFFF;
@@ -380,4 +371,94 @@
     font-weight: 500;
     color: #333;
     font-family: 'Proxima Nova', sans-serif;
+}
+
+.activity-stats {
+    width: 280px;  /* Increased width to accommodate profile info */
+    margin-top: 80px;
+    margin-right: 160px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    position: sticky;
+    top: 100px;
+}
+
+.profile-card {
+    background: #FFFFFF;
+    border: 1px solid #DDD;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0px 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Fixed width for all sidebar elements */
+.profile-card, .stats-box {
+    width: 100%;    /* Take full width of parent */
+    box-sizing: border-box;  /* Include padding in width calculation */
+    min-width: 220px; /* Minimum width to prevent excessive shrinking */
+}
+
+
+.profile-picture-container {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin-bottom: 16px;
+}
+
+.profile-picture {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid #DDD;
+    background-color: #f0f0f0;
+}
+
+.profile-picture-edit {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 36px;
+    height: 36px;
+    background-color: #4CAF50;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+}
+
+.profile-name {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 8px;
+    text-align: center;
+    font-family: 'Effra', sans-serif;
+}
+
+.profile-student-id {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 4px;
+    font-family: 'Proxima Nova', sans-serif;
+}
+
+.profile-joined-clubs {
+    font-size: 14px;
+    color: #666;
+    margin-bottom: 16px;
+    font-family: 'Proxima Nova', sans-serif;
+}
+
+.profile-divider {
+    width: 100%;
+    height: 1px;
+    background-color: #E5E5E5;
+    margin: 16px 0;
 }

@@ -1,23 +1,45 @@
 /* MyActivity.css */
+
+html, body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden; /* Prevents horizontal scrolling */
+}
+
+body {
+  padding-top: 80px; /* Match navbar height */
+}
+
 /* PAGE */
 .my-activity-page {
-    background: #FAFAFA;
-    min-height: 100vh;
+  background: #FAFAFA;
+  min-height: 100vh;
+  padding-top: 80px; /* Add padding equal to navbar height */
+  box-sizing: border-box; /* Ensures padding is included in the element's total height */
+}
+
+.activity-content-wrapper {
+  display: flex;
+  padding-left: 20px;
+  align-items: flex-start;
+  padding-top: 20px; /* Add some space below the navbar */
 }
 
 /* NAVBAR */
 .navbar {
-    position: relative;
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: #FAFAFA;
-    height: 80px;
-    border-bottom: 3px solid #CB9900;
-    padding: 0 40px;
-    box-sizing: border-box;
-    flex-wrap: nowrap;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 80px; /* Make sure your navbar has a consistent height */
+  background-color: #FAFAFA;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
 .navbar-right {
@@ -84,6 +106,7 @@
         display: none;
     }
 }
+
 
 /* CLUBS */
 .activity-club-explore {

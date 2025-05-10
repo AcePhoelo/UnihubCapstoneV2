@@ -15,7 +15,7 @@ class ClubSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Club
-        fields = ['name', 'logo', 'president']
+        fields = ['id', 'name', 'logo', 'president']
 
     def get_president(self, obj):
         """
@@ -172,5 +172,17 @@ class EventSerializer(serializers.ModelSerializer):
             print(f"Error accessing color palette: {e}")
         
         return None
+    
+    def to_representation(self, instance):
+        """Ensure club ID is always present in the response"""
+        data = super().to_representation(instance)
+        
+        # Make sure club ID is included even if it's None
+        if 'club' not in data or data['club'] is None:
+            # If there's a club_details reference but no direct club ID
+            if data.get('club_details') and data['club_details'].get('id'):
+                data['club'] = data['club_details']['id']
+        
+        return data
 
         

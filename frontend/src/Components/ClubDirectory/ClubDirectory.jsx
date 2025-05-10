@@ -183,7 +183,20 @@ const ClubDirectory = () => {
                     )}
                 </div>
                 <div className="navbar-right">
-                    {!isGuest ? (
+                    {isGuest ? (
+                        <div
+                            onClick={handleNav('/login')}
+                            style={{
+                                cursor: 'pointer',
+                                fontSize: '16px',
+                                fontWeight: 'bold',
+                                color: '#000',
+                                fontFamily: 'Effra, sans-serif'
+                            }}
+                        >
+                            LOGIN
+                        </div>
+                    ) : (
                         <div
                             className="profile-icon"
                             onClick={handleNav('/profile')}
@@ -195,10 +208,6 @@ const ClubDirectory = () => {
                             }}
                         >
                             {!currentUserProfilePic && getInitials(currentUserName)}
-                        </div>
-                    ) : (
-                        <div className="profile-icon guest" onClick={handleNav('/login')}>
-                            LOGIN
                         </div>
                     )}
                     {!isGuest && (
@@ -223,7 +232,7 @@ const ClubDirectory = () => {
                     backgroundImage: current.hoverColor
                         ? `linear-gradient(to bottom, ${current.hoverColor} 0%, rgba(250,250,250,0) 50%)`
                         : undefined,
-                }}
+                    }}
             >
                 {!loading && pinnedClubs.length > 0 && (
                     <div 
@@ -276,7 +285,7 @@ const ClubDirectory = () => {
                     <div className="club-explore-title">Explore</div>
                     {error && <div className="error-text" style={{ marginBottom: '1rem' }}>{error}</div>}
                     <div className="clubs-grid">
-                        {clubs.length > 1 && clubs.slice(1).map(club => (
+                        {clubs.length > 0 && clubs.map(club => (
                             <motion.div
                                 key={club.id}
                                 className="explore-club-box"

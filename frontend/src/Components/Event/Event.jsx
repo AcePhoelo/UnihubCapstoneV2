@@ -129,12 +129,18 @@ const Event = () => {
     const fetchEventParticipants = async () => {
         try {
             const token = localStorage.getItem('access_token');
+            const headers = {
+                'Content-Type': 'application/json',
+            };
+            
+            // Only add the Authorization header if not a guest user and token exists
+            if (!isGuest && token) {
+                headers.Authorization = `Bearer ${token}`;
+            }
+            
             const response = await fetch(`http://127.0.0.1:8000/api/event/event_registration/${event.id}/participants/`, {
                 method: 'GET',
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json',
-                },
+                headers: headers,
             });
 
             if (response.ok) {
@@ -146,7 +152,7 @@ const Event = () => {
         } catch (err) {
             console.error('Error fetching participants:', err);
         }
-    };
+};
 
     const toggleParticipantsPanel = () => {
         if (showParticipantsPanel) {
@@ -203,7 +209,11 @@ const Event = () => {
                 setLoading(true);
                 const token = localStorage.getItem('access_token');
                 const userProfile = JSON.parse(localStorage.getItem('profile') || '{}');
+                const currentStudentID = userProfile.studentid;
                 
+                console.log("Current user studentID:", currentStudentID);
+                
+                // First get the event details
                 const response = await fetch(`http://127.0.0.1:8000/api/event/add_event/`, {
                     method: 'GET',
                     headers: {
@@ -211,17 +221,21 @@ const Event = () => {
                         'Content-Type': 'application/json',
                     },
                 });
-    
+
                 if (!response.ok) {
                     setError('Failed to fetch event details');
                     setLoading(false);
                     return;
                 }
-    
+
                 const data = await response.json();
                 const event = data.find((e) => e.name === decodedName);
                 
                 if (event) {
+                    console.log("Found event:", event.name);
+                    // Important: Make sure club ID is available
+                    console.log("Event club ID:", event.club);
+                    
                     setEvent(event);
                     setEditedEventName(event.name);
                     setEditedDescription(event.description || '');
@@ -229,55 +243,54 @@ const Event = () => {
                     setEditedTime(event.time || '');
                     setEditedLocation(event.location || '');
                     
-                // More secure verification - store profile ID from localStorage, not from URL params
-                const currentUserID = userProfile.id;
-                const currentStudentID = userProfile.studentid;
-                
-                // Very explicit creator check with multiple safety checks
-                const isCreator = 
-                    currentUserID && event.created_by && (
-                        event.created_by.id === parseInt(currentUserID) || 
-                        String(event.created_by.id) === String(currentUserID) ||
-                        (event.created_by_details && 
-                         event.created_by_details.studentid === currentStudentID)
-                    );
-                
-                // Only allow editing if the user is definitely the creator
-                setIsEventCreator(!!isCreator);
-                
-                // Similar hardened approach for club leader
-                const isClubLeader = 
-                    currentUserID && currentStudentID && 
-                    event.club_details?.president && (
-                        event.club_details.president.user_id === parseInt(currentUserID) ||
-                        String(event.club_details.president.studentid) === String(currentStudentID)
-                    );
-                
-                setIsClubLeaderForEvent(!!isClubLeader);
+                    // Check if user is the event creator
+                    const isCreator = 
+                        currentStudentID && 
+                        event.created_by_details && 
+                        String(event.created_by_details.studentid) === String(currentStudentID);
                     
+                    console.log("Is event creator:", isCreator);
+                    setIsEventCreator(isCreator);
                     
-                    if (!isGuest && studentID) {
+                    // Now check club leadership if we have a clubId
+                    if (!isGuest && event.club) {
                         try {
-                            const participantsResponse = await fetch(
-                                `http://127.0.0.1:8000/api/event/event_registration/${event.id}/participants/`,
-                                {
-                                    headers: {
-                                        'Authorization': `Bearer ${token}`,
-                                        'Content-Type': 'application/json',
-                                    },
+                            console.log("Fetching club data for club ID:", event.club);
+                            const clubResponse = await fetch(`http://127.0.0.1:8000/clubs/clubs/${event.club}/`, {
+                                headers: {
+                                    'Authorization': token ? `Bearer ${token}` : '',
+                                    'Content-Type': 'application/json',
                                 }
-                            );
+                            });
                             
-                            if (participantsResponse.ok) {
-                                const participantsData = await participantsResponse.json();
-                                const userRegistration = participantsData.results?.find(
-                                    p => p.student && p.student.studentid === studentID
-                                );
+                            if (clubResponse.ok) {
+                                const clubData = await clubResponse.json();
+                                console.log("Club president ID:", clubData.president?.studentid);
+                                console.log("Current user ID:", currentStudentID);
                                 
-                                setIsUserRegistered(!!userRegistration);
+                                // Check if current user is the current club president
+                                const isCurrentPresident = 
+                                    currentStudentID && 
+                                    clubData.president && 
+                                    String(clubData.president.studentid) === String(currentStudentID);
+                                
+                                console.log("Is club leader for event:", isCurrentPresident);
+                                setIsClubLeaderForEvent(isCurrentPresident);
+                                
+                                // Update event with correct club details
+                                setEvent(prevEvent => ({
+                                    ...prevEvent,
+                                    club: event.club,
+                                    club_details: {
+                                        ...prevEvent.club_details,
+                                        president: clubData.president
+                                    }
+                                }));
+                            } else {
+                                console.error("Failed to fetch club data:", await clubResponse.text());
                             }
                         } catch (err) {
-                            console.error('Error checking registration status:', err);
+                            console.error('Error fetching current club data:', err);
                         }
                     }
                 } else {
@@ -293,7 +306,7 @@ const Event = () => {
         };
 
         fetchEventData();
-    }, [decodedName]);
+    }, [decodedName]); // Only re-run when event name changes
 
     const sec = event?.secondary_color?.join(',') || '0,0,0';
     const dom = event?.dominant_color?.join(',') || '255,255,255';
@@ -487,12 +500,12 @@ useEffect(() => {
             });
             
             if (response.ok) {
-                const updatedEvent = await response.json();
-                setEvent(updatedEvent);
+                const event = await response.json();
+                setEvent(event);
                 setIsEditMode(false);
                 
-                if (updatedEvent.name !== decodedName) {
-                    navigate(`/event/${encodeURIComponent(updatedEvent.name)}`);
+                if (event.name !== decodedName) {
+                    navigate(`/event/${encodeURIComponent(event.name)}`);
                 }
             } else {
                 // Better error handling - show the actual error message
@@ -513,10 +526,18 @@ useEffect(() => {
 
     const handleRegisterClick = () => {
         if (isGuest) {
-            navigate('/login');
+            navigate('/error', {
+                state: {
+                    errorCode: '401',
+                    errorMessage: 'Login Required',
+                    errorDetails: 'Please log in to register for events.'
+                }
+            });
             return;
         }
-        navigate(`/register-event/${encodeURIComponent(decodedName)}`) };
+        navigate(`/register-event/${encodeURIComponent(decodedName)}`);
+    };
+
     const handleNav = path => () => navigate(path);
 
 const handleRemoveParticipant = async (participantId) => {
@@ -572,6 +593,31 @@ const isEventPassed = () => {
   
   return today >= eventDate;
 };
+
+const isEventPassed2 = () => {
+  if (!event || !event.date) return false;
+  
+  // Parse event date (format: YYYY-MM-DD) and handle timezone issues
+  const [year, month, day] = event.date.split('-').map(Number);
+  const eventDate = new Date(year, month - 1, day); // Month is 0-indexed in JS
+  
+  // Get current date without time
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  // For debugging
+  console.log("Event date:", eventDate);
+  console.log("Today:", today);
+  console.log("Is event passed:", today > eventDate);
+  
+  return today > eventDate;
+};
+
+// Add this right before the return statement
+console.log("RENDER - Permission Summary:");
+console.log("- isEventCreator:", isEventCreator);
+console.log("- isClubLeaderForEvent:", isClubLeaderForEvent);
+console.log("- Can edit event:", isEventCreator || isClubLeaderForEvent);
 
     return (
         <div className="event-page">
@@ -701,7 +747,7 @@ const isEventPassed = () => {
                                 </div>
                             ) : (
                                 <div className="event-banner-buttons">
-                                    {isEventCreator && (
+                                    {(isEventCreator || isClubLeaderForEvent) && (
                                         <button
                                             className="event-banner-button edit-event-button"
                                             onClick={() => setIsEditMode(true)}
@@ -709,16 +755,17 @@ const isEventPassed = () => {
                                             Edit
                                         </button>
                                     )}
-                                    <button
-                                        className="register-button"
-                                        onClick={isUserRegistered ? handleCancelRegistration : handleRegisterClick}
-                                        style={{
-                                            background: isUserRegistered ? '#CF2424' : '#2074AC',
-                                        }}
-                                    >
-                                        {isUserRegistered ? 'Cancel' : 'Register'}
-                                    </button>
-                                </div>
+                                        <button
+                                            className="register-button"
+                                            onClick={isEventPassed2() ? null : (isUserRegistered ? handleCancelRegistration : handleRegisterClick)}
+                                            style={{
+                                                background: isEventPassed2() ? '#999999' : (isUserRegistered ? '#CF2424' : '#2074AC'),
+                                                cursor: isEventPassed2() ? 'default' : 'pointer',
+                                            }}
+                                        >
+                                            {isEventPassed2() ? 'Event\'s Over' : (isUserRegistered ? 'Cancel' : 'Register')}
+                                        </button>
+                                    </div>
                             )}
                         </div>
                         <div className="event-banner-right">

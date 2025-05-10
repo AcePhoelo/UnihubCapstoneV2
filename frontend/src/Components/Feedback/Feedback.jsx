@@ -77,19 +77,23 @@ const Feedback = () => {
     }, []);
 
     useEffect(() => {
-        const progressContainer = document.querySelector('.custom-progress-container');
-
-        if (progressContainer && progressRef.current && circlesRef.current.length > 0) {
-            const fixedProgressHeight = 392;
-
-            progressRef.current.style.top = `0px`;
-            progressRef.current.style.height = `${fixedProgressHeight}px`;
-
-            const stepHeight = fixedProgressHeight / (circlesRef.current.length - 1);
-            circlesRef.current.forEach((circle, idx) => {
-                circle.style.position = 'absolute';
-                circle.style.top = `${idx * stepHeight - circle.offsetHeight / 2}px`;
-            });
+        if (progressRef.current && circlesRef.current.length > 0) {
+            // Calculate the height between first and last circle
+            const firstCirclePos = 15; // Half of circle height
+            const lastCirclePos = 310; // Total height minus half circle height
+            const progressHeight = lastCirclePos - firstCirclePos;
+            
+            // Update height based on current step
+            if (step === 1) {
+                progressRef.current.style.height = '0px';
+            } else if (step === 2) {
+                progressRef.current.style.height = `${progressHeight / 2}px`;
+            } else if (step === 3) {
+                progressRef.current.style.height = `${progressHeight}px`;
+            }
+            
+            // Don't manipulate positions here - CSS handles that now
+            // This avoids the issue of circles disappearing or moving
         }
     }, [step]);
 
@@ -180,15 +184,39 @@ const Feedback = () => {
             if (response.ok) {
                 setSuccess(true);
                 setError('');
-                success('Feedback submitted successfully!');
-                navigate(`/event/${encodeURIComponent(event.name)}`);
+                success2('Feedback submitted successfully!');
+                
+                // Add a small delay before navigation to ensure notifications show up
+                setTimeout(() => {
+                    try {
+                        // Check if event exists and has a name property
+                        if (event && event.name) {
+                            navigate(`/event/${encodeURIComponent(event.name)}`);
+                        } else {
+                            // Fallback navigation if event name is missing
+                            navigate('/dashboard');
+                            console.log('Event name was missing, navigated to dashboard instead');
+                        }
+                    } catch (navError) {
+                        console.error('Navigation error:', navError);
+                        // Show a message but don't treat it as an error
+                        success2('Feedback submitted successfully! Please return to the previous page.');
+                    }
+                }, 500);
             } else {
-                const errorData = await response.json();
-                const errorMessage = typeof errorData === 'object' 
-                    ? Object.entries(errorData).map(([field, errors]) => `${field}: ${errors}`).join(', ')
-                    : (errorData.detail || 'Failed to submit feedback.');
-                setError(errorMessage);
-                error2(errorMessage);
+                // This part handles HTTP error responses
+                try {
+                    const errorData = await response.json();
+                    const errorMessage = typeof errorData === 'object' 
+                        ? Object.entries(errorData).map(([field, errors]) => `${field}: ${errors}`).join(', ')
+                        : (errorData.detail || 'Failed to submit feedback.');
+                    setError(errorMessage);
+                    error2(errorMessage);
+                } catch (jsonError) {
+                    // Handle case where response isn't valid JSON
+                    setError('Server returned an invalid response');
+                    error2('Server returned an invalid response');
+                }
             }
         } catch (err) {
             console.error('Error submitting feedback:', err);
@@ -202,33 +230,36 @@ const Feedback = () => {
     if (loading) return <div>Loading...</div>;
     if (error) return <div className="error-message">{error}</div>;
 
-    return (
-        <div>
-            <div className="feedback-header">
-                <img
-                    src={backIcon}
-                    alt="Back"
-                    className="back-button"
-                    onClick={() => navigate(-1)}
-                    style={{ cursor: 'pointer', marginRight: '16px' }}
-                />
-                <div className="feedback-eventname">{decodedEventName} Feedback</div>
-            </div>
-            <div className="steps-container">
-                <div className="custom-progress-container">
-                    <div className="progress" ref={progressRef}></div>
-
-                    {[1, 2, 3].map((num, index) => (
-                        <div
-                            key={num}
-                            ref={(el) => (circlesRef.current[index] = el)}
-                            className={`circle ${step >= num ? 'active' : ''}`}
-                        >
-                            {num}
-                        </div>
-                    ))}
+return (
+    <div>
+        <div className="feedback-header">
+            <img
+                src={backIcon}
+                alt="Back"
+                className="back-button"
+                onClick={() => navigate(-1)}
+                style={{ cursor: 'pointer', marginRight: '16px' }}
+            />
+            <div className="feedback-eventname">{decodedEventName} Feedback</div>
+        </div>
+        
+        <div className="feedback-wrapper">
+            <div className="feedback-content">
+                {/* Progress bar */}
+                <div className="steps-container">
+                    <div className="custom-progress-container">
+                        <div className="progress" ref={progressRef}></div>
+                        {[1, 2, 3].map((num, index) => (
+                            <div
+                                key={num}
+                                ref={(el) => (circlesRef.current[index] = el)}
+                                className={`circle ${step >= num ? 'active' : ''}`}
+                            >
+                                {num}
+                            </div>
+                        ))}
+                    </div>
                 </div>
-            </div>
             <div className='feedback-container'>
                 {step === 1 && (
                     <div className="feedback-inputs">
@@ -310,16 +341,19 @@ const Feedback = () => {
                         </div>
                     </div>
                 )}
+
+                </div>
             </div>
             <div className="feedback-submit-container">
-                {step < 3 ? (
-                    <button className="feedback-submit" onClick={nextStep}>Next</button>
-                ) : (
-                    <button className="feedback-submit" onClick={handleSubmit}>Submit</button>
-                )}
+                        {step < 3 ? (
+                            <button className="feedback-submit" onClick={nextStep}>Next</button>
+                        ) : (
+                            <button className="feedback-submit" onClick={handleSubmit}>Submit</button>
+                        )}
             </div>
         </div>
-    );
+    </div>
+);
 }
 
 export default Feedback;

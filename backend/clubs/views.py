@@ -352,6 +352,10 @@ def delete_club_role(request, club_id, role_id=None):
             if not role_name:
                 return Response({"error": "Role name is required"}, status=400)
 
+            # Skip if trying to delete the President role
+            if role_name == "President":
+                return Response({"error": "Cannot delete the President role"}, status=400)
+
             # Reset members with this role to "Member"
             memberships = ClubMembership.objects.filter(club=club, position=role_name)
             for membership in memberships:
@@ -365,17 +369,45 @@ def delete_club_role(request, club_id, role_id=None):
         if role_id_str.startswith('custom_'):
             custom_id = int(role_id_str.replace('custom_', ''))
             try:
-                membership = ClubMembership.objects.get(id=custom_id, club=club)
-                membership.custom_position = ''  # Clear custom position
-                membership.save()
+                # Find all memberships with this custom position
+                memberships = ClubMembership.objects.filter(
+                    club=club, 
+                    custom_position=ClubMembership.objects.get(id=custom_id).custom_position
+                )
+                
+                # Reset all matching members to regular members
+                for membership in memberships:
+                    membership.custom_position = ''
+                    membership.position = 'Member'  # Ensure they become regular members
+                    membership.save()
+                    
             except ClubMembership.DoesNotExist:
                 return Response({"error": "Custom role not found"}, status=404)
         else:
             # Handle numeric role_id - this is likely a ClubMembership ID
             try:
+                # Get the role name first
                 membership = ClubMembership.objects.get(id=role_id, club=club)
-                membership.custom_position = ''  # Clear custom position
-                membership.save()
+                role_name = membership.custom_position
+                
+                # Find all memberships with this custom position
+                if role_name:
+                    memberships = ClubMembership.objects.filter(
+                        club=club, 
+                        custom_position=role_name
+                    )
+                    
+                    # Reset all matching members to regular members
+                    for member in memberships:
+                        member.custom_position = ''
+                        member.position = 'Member'  # Ensure they become regular members
+                        member.save()
+                else:
+                    # Just reset this single membership
+                    membership.custom_position = ''
+                    membership.position = 'Member'
+                    membership.save()
+                    
             except ClubMembership.DoesNotExist:
                 return Response({"error": f"Role with ID {role_id} not found"}, status=404)
 
@@ -416,15 +448,26 @@ def transfer_leadership(request, club_id):
         club.president = new_president
         club.save()
         
-        # Update the membership statuses
+        # Update the membership status of the new president
+        # Clear any custom role when making someone President
         membership.position = 'President'
+        membership.custom_position = ''  # Clear any custom role
         membership.save()
         
-        # Remove the old president if requested
+        # Remove the old president if requested or make them a regular member
         remove_old = request.data.get('remove_old_president', False)
-        if remove_old:
+        try:
             old_membership = ClubMembership.objects.get(club=club, student=current_user)
-            old_membership.delete()
+            if remove_old:
+                old_membership.delete()
+            else:
+                # If staying, make them a regular member with no custom role
+                old_membership.position = 'Member'
+                old_membership.custom_position = ''
+                old_membership.save()
+        except ClubMembership.DoesNotExist:
+            # Handle edge case where old president membership record doesn't exist
+            pass
             
         return Response({
             "message": "Leadership transferred successfully",

@@ -72,11 +72,11 @@ const EventDirectory = () => {
                     time: event.time,
                     place: event.location,
                     unit: event.unit || '',
-                    club: {
+                    club: event.club_details ? {
                         id: event.club_details.id,
                         name: event.club_details.name,
                         logoUrl: event.club_details.logo,
-                    },
+                    } : null,
                 }));
                 setEvents(formattedEvents);
             } catch (err) {
@@ -202,21 +202,36 @@ const EventDirectory = () => {
                     )}
                 </div>
                 <div className="navbar-right">
-                    <div
-                        className="profile-icon"
-                        onClick={handleNav(isGuest ? '/login' : '/profile')}
-                        style={{
-                            cursor: 'pointer',
-                            fontSize: isGuest ? '14px' : '24px',
-                            backgroundImage: currentUserProfilePic
-                                ? `url(${currentUserProfilePic})`
-                                : undefined,
-                            backgroundSize: 'cover',
-                            backgroundPosition: 'center',
-                        }}
-                    >
-                        {isGuest ? 'LOGIN' : currentUserProfilePic ? '' : getInitials(currentUserName)}
-                    </div>
+                        {isGuest ? (
+                            <div
+                                onClick={handleNav('/login')}
+                                style={{
+                                    cursor: 'pointer',
+                                    fontSize: '16px',
+                                    fontWeight: 'bold',
+                                    color: '#000',
+                                    fontFamily: 'Effra, sans-serif'
+                                }}
+                            >
+                                LOGIN
+                            </div>
+                        ) : (
+                            <div
+                                className="profile-icon"
+                                onClick={handleNav('/profile')}
+                                style={{
+                                    cursor: 'pointer',
+                                    fontSize: '24px',
+                                    backgroundImage: currentUserProfilePic
+                                        ? `url(${currentUserProfilePic})`
+                                        : undefined,
+                                    backgroundSize: 'cover',
+                                    backgroundPosition: 'center',
+                                }}
+                            >
+                                {currentUserProfilePic ? '' : getInitials(currentUserName)}
+                            </div>
+                        )}
                     {!isGuest && (
                                             <img
                                                 src={calendar}
@@ -303,8 +318,9 @@ const EventDirectory = () => {
                             </div>
                         )}
                         <div className="events-grid">
-                            {events.slice(1).map((evt) => {
-                                const { club } = evt;
+                            {events.map((evt) => {
+                                console.log('Event:', evt);
+                                const club = evt.club || {};
                                 return (
                                     <motion.div
                                         key={evt.id}
@@ -356,15 +372,13 @@ const EventDirectory = () => {
                                             whileHover={{ scale: 1.05 }}
                                             viewport={{ once: true, amount: 0.2 }}
                                             onClick={() => {
+                                                console.log("Club data clicked:", club);
+                                                
                                                 if (!club || !club.id) {
                                                     console.error("Invalid club data:", club);
-                                                    navigate('/error', { 
-                                                        state: { 
-                                                            errorCode: '404',
-                                                            errorMessage: 'Club Not Found',
-                                                            errorDetails: 'The requested club information is not available.'
-                                                        }
-                                                    });
+                                                    // Instead of going to error page, just do nothing
+                                                    // or provide feedback to the user
+                                                    return; // Stop here if no valid club ID
                                                 } else {
                                                     navigate(`/club/${club.id}`);
                                                 }
@@ -372,13 +386,16 @@ const EventDirectory = () => {
                                             style={{
                                                 display: 'flex',
                                                 alignItems: 'center',
-                                                cursor: 'pointer',
+                                                cursor: club && club.id ? 'pointer' : 'not-allowed',
+                                                opacity: club && club.id ? 1 : 0.6, // Visually show if clickable
+                                                position: 'relative',  // Add these to improve clickability
+                                                zIndex: 1
                                             }}
                                         >
-                                            {club.logoUrl ? (
+                                            {club && club.logoUrl ? (
                                                 <img
                                                     src={club.logoUrl}
-                                                    alt={club.name}
+                                                    alt={club.name || "Club"}
                                                     className="event-club-icon"
                                                 />
                                             ) : (
@@ -386,7 +403,7 @@ const EventDirectory = () => {
                                                     Logo
                                                 </div>
                                             )}
-                                            <div className="event-club-name">{club.name}</div>
+                                            <div className="event-club-name">{club && club.name ? club.name : "Unknown Club"}</div>
                                         </motion.div>
                                     </motion.div>
                                 );

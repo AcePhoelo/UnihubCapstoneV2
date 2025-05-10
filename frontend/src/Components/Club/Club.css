@@ -644,8 +644,11 @@
 
 .members-panel-content {
     padding: 24px;
+    padding-top: 0; /* Remove top padding */
     overflow-y: auto;
     flex-grow: 1;
+    display: flex;
+    flex-direction: column;
 }
 
 .close-members-panel {
@@ -697,23 +700,23 @@
 .members-panel-header {
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
     position: sticky;
     top: 0;
     background-color: #FAFAFA;
-    height: 80px;
-    z-index: 20;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    width: 100%;
+    min-height: 6rem; /* Increased from 80px to 100px */
+    z-index: 100;
+    padding: 0 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     box-sizing: border-box;
-    transform: translateY(-20px);
-    gap: 24px;
+    margin-bottom: 24px;
 }
 
+/* You'll also need to adjust this if you have it in your code */
 .members-panel-header-border {
     position: fixed;
-    top: 80px;
+    top: 6rem; /* Update from 80px to 100px to match new header height */
     left: 0;
     width: 100%;
     max-width: 100%;
@@ -722,7 +725,6 @@
     z-index: 999;
     pointer-events: none;
 }
-
 .members-header-inner {
     max-width: 1600px;
     width: 100%;
@@ -808,7 +810,9 @@
     flex-direction: column;
     align-items: center;
     gap: 24px;
-    margin-top: 60px;
+    width: 100%;
+    padding-top: 16px;
+    margin-top: 0; /* Remove margin-top as we're using margin-bottom on header */
 }
 
 .role-section {
@@ -970,3 +974,21 @@
         background-color: #cccccc;
         cursor: not-allowed;
     }
+
+.stay-member-option {
+    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.stay-member-option input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.stay-member-option label {
+    cursor: pointer;
+    font-size: 14px;
+}

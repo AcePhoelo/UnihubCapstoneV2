@@ -33,6 +33,7 @@ urlpatterns = [
     path("api/event/add_event/", include("event.add_event.urls")),  # Add event app
     path("api/event/event_page/", include("event.event_page.urls")),  # Event page app
     path("api/event/event_registration/", include("event.event_registration.urls")),  # Event registration app
+    path("api/event/", include("event.event_list.urls")),
 ]
 
 # Serve static and media files during development

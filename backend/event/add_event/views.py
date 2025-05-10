@@ -38,6 +38,22 @@ class EventDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = EventSerializer
     permission_classes = [AllowAny]
 
+    def get_object(self):
+        obj = super().get_object()
+        # Always ensure we have fresh club data
+        if obj.club:
+            obj.club_details = {
+                'name': obj.club.name,
+                'logo': obj.club.logo.url if obj.club.logo else None,
+                'president': {
+                    'id': obj.club.president.id,
+                    'studentid': obj.club.president.studentid,
+                    'full_name': obj.club.president.full_name,
+                    'profile_picture': obj.club.president.profile_picture.url if obj.club.president.profile_picture else None
+                } if obj.club.president else None
+            }
+        return obj
+
     def get_queryset(self):
         # Return all events instead of filtering by user
         return self.queryset.all()

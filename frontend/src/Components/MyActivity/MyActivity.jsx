@@ -198,6 +198,7 @@ const MyActivity = () => {
                 }
             };
     
+
             const processUserActivity = (userData) => {
                 if (!userData || !userData.clubsjoined) {
                     console.error("Invalid response format:", userData);
@@ -205,34 +206,39 @@ const MyActivity = () => {
                     setLoading(false);
                     return;
                 }
-            
-                // Process "My Clubs" section
-                const userClubs = Array.isArray(userData.clubsjoined)
-                    ? userData.clubsjoined.map(club => ({
+
+                // Process "Clubs I Lead" section first
+                const leaderClubs = Array.isArray(userData.leadership_clubs)
+                    ? userData.leadership_clubs.map(club => ({
                         id: club.id || "",
-                        name: club.name || "Unknown Club", // Ensure the name is set
-                        description: club.description || "",
+                        name: club.name || "Unknown Club",
+                        description: club.description || "Club Leader",
+                        // Add complete URLs with domain
+                        logo: club.logo ? `http://127.0.0.1:8000${club.logo}` : null,
+                        banner: club.banner ? `http://127.0.0.1:8000${club.banner}` : null,
                         imageUrl: club.banner ? `http://127.0.0.1:8000${club.banner}` : null,
-                        logoUrl: club.logo ? `http://127.0.0.1:8000${club.logo}` : null,
+                        logoUrl: club.logo ? `http://127.0.0.1:8000${club.logo}` : null
                     }))
                     : [];
-            
-                // Process "Clubs I Lead" section
-                const leaderClubs = Array.isArray(userData.leadership_clubs)
-                ? userData.leadership_clubs.map(club => ({
-                    id: club.id || "",
-                    name: club.name || "Unknown Club",
-                    description: club.description || "Club Leader",
-                    // Add complete URLs with domain
-                    logo: club.logo ? `http://127.0.0.1:8000${club.logo}` : null,
-                    banner: club.banner ? `http://127.0.0.1:8000${club.banner}` : null,
-                    imageUrl: club.banner ? `http://127.0.0.1:8000${club.banner}` : null,
-                    logoUrl: club.logo ? `http://127.0.0.1:8000${club.logo}` : null
-                }))
-                : [];
-            
-                setClubs(userClubs);
+                
+                // Get list of leadership club IDs
+                const leadershipClubIds = leaderClubs.map(club => club.id);
+                
+                // Process "My Clubs" section, filtering out any clubs that appear in "Clubs I Lead"
+                const userClubs = Array.isArray(userData.clubsjoined)
+                    ? userData.clubsjoined
+                        .filter(club => !leadershipClubIds.includes(club.id)) // Filter out duplicates
+                        .map(club => ({
+                            id: club.id || "",
+                            name: club.name || "Unknown Club", 
+                            description: club.description || "",
+                            imageUrl: club.banner ? `http://127.0.0.1:8000${club.banner}` : null,
+                            logoUrl: club.logo ? `http://127.0.0.1:8000${club.logo}` : null,
+                        }))
+                    : [];
+
                 setLeadershipClubs(leaderClubs);
+                setClubs(userClubs);
             };
     
             fetchUserActivity();
@@ -520,10 +526,63 @@ const MyActivity = () => {
                 </div>
 
                 <aside className="activity-stats">
+                    <div className="profile-card">
+                        <div className="profile-picture-container">
+                            {profilePicture ? (
+                                <img
+                                    src={profilePicture}
+                                    alt="Profile"
+                                    className="profile-picture"
+                                    onError={(e) => {
+                                        e.target.onerror = null;
+                                        e.target.style.display = 'none';
+                                        const parent = e.target.parentElement;
+                                        const initials = document.createElement('div');
+                                        initials.className = "profile-picture";
+                                        initials.style.display = "flex";
+                                        initials.style.alignItems = "center";
+                                        initials.style.justifyContent = "center";
+                                        initials.style.backgroundColor = "#2074AC";
+                                        initials.style.color = "white";
+                                        initials.style.fontSize = "36px";
+                                        initials.innerText = getInitials(studentName);
+                                        parent.appendChild(initials);
+                                    }}
+                                />
+                            ) : (
+                                <div
+                                    className="profile-picture"
+                                    style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        backgroundColor: "#2074AC",
+                                        color: "white",
+                                        fontSize: "36px"
+                                    }}
+                                >
+                                    {getInitials(studentName)}
+                                </div>
+                            )}
+                            <div className="profile-picture-edit">
+                                <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" viewBox="0 0 24 24" fill="#FFFFFF">
+                                    <path d="M0 0h24v24H0z" fill="none"/>
+                                    <circle cx="12" cy="12" r="3.2"/>
+                                    <path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/>
+                                </svg>
+                            </div>
+                        </div>
+                        <div className="profile-name">{studentName || "User's full name"}</div>
+                        <div className="profile-student-id">Student ID: {studentID || "User's student ID"}</div>
+                        
+                        <div className="profile-divider"></div>
+                    </div>
+                    
                     <div className="stats-box">
                         <div className="stats-number">{leadershipClubs.length + clubs.length}</div>
                         <div className="stats-label">Clubs joined</div>
                     </div>
+                    
                     <div className="stats-box">
                         <div className="stats-number">{events.length}</div>
                         <div className="stats-label">Events visited</div>

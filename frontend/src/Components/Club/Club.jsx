@@ -83,8 +83,9 @@ const Club = () => {
     const [clubRoles, setClubRoles] = useState([]);
 
     const [showTransferModal, setShowTransferModal] = useState(false);
-const [eligibleMembers, setEligibleMembers] = useState([]);
-const [selectedNewPresident, setSelectedNewPresident] = useState(null);
+    const [eligibleMembers, setEligibleMembers] = useState([]);
+    const [selectedNewPresident, setSelectedNewPresident] = useState(null);
+    const [stayAsRegularMember, setStayAsRegularMember] = useState(false);
     const logoInputRef = useRef(null);
     const bannerInputRef = useRef(null);
     const descRef = useRef(null);
@@ -214,27 +215,48 @@ const [selectedNewPresident, setSelectedNewPresident] = useState(null);
             const headers = { 'Content-Type': 'application/json' };
             if (!isGuest && token) headers.Authorization = `Bearer ${token}`;
 
-            const [mResp, rResp] = await Promise.all([
-                fetch(`http://127.0.0.1:8000/clubs/clubs/${club_id}/members/`, { headers }),
-                fetch(`http://127.0.0.1:8000/clubs/clubs/${club_id}/roles/`, { headers })
-            ]);
-
+            // First fetch members data (works for both guests and authenticated users)
+            const mResp = await fetch(`http://127.0.0.1:8000/clubs/clubs/${club_id}/members/`, { headers });
+            
             if (mResp.ok) {
                 const md = await mResp.json();
-                setMembers(
-                    (md.results || []).map(m => ({
-                        full_name: m.full_name || m.student?.full_name || 'Unknown',
-                        studentid: m.studentid || m.student?.studentid || 'No ID',
-                        position: m.position || 'Member',
-                        custom_position: m.custom_position || '',
-                        profile_picture: m.profile_picture || m.student?.profile_picture || null
-                    }))
-                );
+                const membersList = (md.results || []).map(m => ({
+                    full_name: m.full_name || m.student?.full_name || 'Unknown',
+                    studentid: m.studentid || m.student?.studentid || 'No ID',
+                    position: m.position || 'Member',
+                    custom_position: m.custom_position || '',
+                    profile_picture: m.profile_picture || m.student?.profile_picture || null
+                }));
+                
+                setMembers(membersList);
+                
+                // For guests, extract unique roles directly from members data
+                if (isGuest) {
+                    const uniquePositions = [...new Set(
+                        membersList
+                            .map(m => m.custom_position || m.position)
+                            .filter(Boolean)
+                    )];
+                    
+                    setClubRoles(uniquePositions.map(position => ({
+                        id: position,
+                        name: position
+                    })));
+                }
             }
 
-            if (rResp.ok) {
-                const rd = await rResp.json();
-                setClubRoles(rd.roles || []);
+            // Try to get roles from API (will work for authenticated users)
+            if (!isGuest) {
+                try {
+                    const rResp = await fetch(`http://127.0.0.1:8000/clubs/clubs/${club_id}/roles/`, { headers });
+                    if (rResp.ok) {
+                        const rd = await rResp.json();
+                        setClubRoles(rd.roles || []);
+                    }
+                } catch (roleErr) {
+                    console.error('Error fetching roles:', roleErr);
+                    // Already handled roles for guests above
+                }
             }
         } catch (err) {
             console.error('Error fetching members/roles:', err);
@@ -258,7 +280,17 @@ const [selectedNewPresident, setSelectedNewPresident] = useState(null);
     }, [club_id]);
 
     const joinClub = async () => {
-        if (isGuest) return navigate('/login');
+        if (isGuest) {
+            navigate('/error', {
+                state: {
+                    errorCode: '401',
+                    errorMessage: 'Login Required',
+                    errorDetails: 'Please log in to join clubs.'
+                }
+            });
+            return;
+        }
+        
         const token = localStorage.getItem('access_token');
         await fetch(`http://127.0.0.1:8000/clubs/clubs/${club_id}/members/add/`, {
             method: 'POST',
@@ -327,12 +359,11 @@ const [selectedNewPresident, setSelectedNewPresident] = useState(null);
             error2('Please select a member to become the new president');
             return;
         }
-    
+
         try {
             const token = localStorage.getItem('access_token');
             
-            // This is critical: Extract the correct Student ID
-            // Must be the Student model ID, not the membership ID
+            // Extract the correct Student ID
             const newPresidentId = selectedNewPresident.student?.id || selectedNewPresident.id;
             
             console.log("Full selected object:", selectedNewPresident);
@@ -350,21 +381,27 @@ const [selectedNewPresident, setSelectedNewPresident] = useState(null);
                 },
                 body: JSON.stringify({ 
                     new_president_id: newPresidentId,
-                    remove_old_president: true 
+                    remove_old_president: !stayAsRegularMember // Use the toggle state
                 })
             });
-    
+
             if (!response.ok) {
-                // Extract error message from response
                 const errorData = await response.json();
                 throw new Error(errorData.error || 'Failed to transfer leadership');
             }
-    
+
             success2('Leadership transferred successfully');
             setIsClubPresident(false);
-            setIsUserMember(false);
+            setIsUserMember(stayAsRegularMember); // Update membership status based on choice
             setShowTransferModal(false);
-            navigate('/club-directory');
+            
+            if (!stayAsRegularMember) {
+                navigate('/club-directory');
+            } else {
+                // Refresh the club details to show updated roles
+                fetchClubDetails();
+                fetchClubMembers();
+            }
         } catch (err) {
             error2(`Failed to transfer leadership: ${err.message}`);
             console.error(err);
@@ -372,9 +409,20 @@ const [selectedNewPresident, setSelectedNewPresident] = useState(null);
     };
 
     const navigateToProfile = user => {
-        console.log("Navigating to profile:", user); // Debug log
+        if (isGuest) {
+            navigate('/error', {
+                state: {
+                    errorCode: '401',
+                    errorMessage: 'Login Required',
+                    errorDetails: 'Please log in to view user profiles.'
+                }
+            });
+            return;
+        }
+        
+        console.log("Navigating to profile:", user);
         if (!user?.studentid) {
-            console.error("Invalid user object:", user); // Log the error
+            console.error("Invalid user object:", user);
             navigate('/error', {
                 state: {
                     errorCode: '404',
@@ -383,10 +431,7 @@ const [selectedNewPresident, setSelectedNewPresident] = useState(null);
                 }
             });
         } else {
-            // Navigate to the frontend Profile component with student ID as parameter
             navigate(`/profile`, { state: { studentId: user.studentid } });
-            // Alternative approach if Profile uses URL parameters:
-            // navigate(`/profile/${user.studentid}`);
         }
     };
 
@@ -840,18 +885,15 @@ const [selectedNewPresident, setSelectedNewPresident] = useState(null);
                                             )}
                                         </div>
                                         <div className="members-body">
+                                            {/* 1. President section (always first) */}
                                             <MemberCategorySection
                                                 title="President"
                                                 members={members.filter(m => m.position === 'President')}
                                                 searchQuery={searchQuery}
                                                 getInitials={getInitials}
                                             />
-                                            <MemberCategorySection
-                                                title="Members"
-                                                members={members.filter(m => m.position === 'Member' && !m.custom_position)}
-                                                searchQuery={searchQuery}
-                                                getInitials={getInitials}
-                                            />
+                                            
+                                            {/* 2. All other custom roles (in the middle) */}
                                             {clubRoles
                                                 .filter(r => !['President', 'Member'].includes(r.name))
                                                 .map(role => (
@@ -867,15 +909,25 @@ const [selectedNewPresident, setSelectedNewPresident] = useState(null);
                                                         getInitials={getInitials}
                                                     />
                                                 ))}
+                                            
+                                            {/* 3. Regular Members section (always last) */}
+                                            <MemberCategorySection
+                                                title="Members"
+                                                members={members.filter(m => m.position === 'Member' && !m.custom_position)}
+                                                searchQuery={searchQuery}
+                                                getInitials={getInitials}
+                                            />
+                                            
+                                            {/* No results message */}
                                             {members.filter(m =>
                                                 !searchQuery ||
                                                 (m.full_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
                                                 m.studentid.includes(searchQuery)
                                             ).length === 0 && (
-                                                    <div className="no-results">
-                                                        No members found matching your search.
-                                                    </div>
-                                                )}
+                                                <div className="no-results">
+                                                    No members found matching your search.
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -949,6 +1001,18 @@ const [selectedNewPresident, setSelectedNewPresident] = useState(null);
                                         );
                                     })}
                                 </select>
+                                </div>
+
+                                    <div className="stay-member-option">
+                                    <input
+                                        type="checkbox"
+                                        id="stay-as-member"
+                                        checked={stayAsRegularMember}
+                                        onChange={(e) => setStayAsRegularMember(e.target.checked)}
+                                    />
+                                    <label htmlFor="stay-as-member">
+                                        Stay in club as a regular member
+                                    </label>
                                 </div>
                             </div>
                             <div className="modal-footer">
