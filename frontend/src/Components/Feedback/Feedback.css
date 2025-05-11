@@ -53,14 +53,19 @@
     justify-content: center; /* Center vertically */
     align-items: center; /* Center horizontally */
     padding: 35px 40px;
-    min-height: 350px;
+    min-height: 340px;
+    max-width: 950px;
     background: #ffffff;
     border: 1px solid #e0e0e0;
     border-radius: 8px;
     position: relative;
+    top: 50px;
     overflow: hidden;
-    margin-top: 0;
+    margin: 0 auto; /* Center the container itself */
+    width: 90%; /* Take full width available */
+    box-sizing: border-box;
 }
+
 
 /* Center all input groups */
 .feedback-inputs {
@@ -162,16 +167,18 @@
 /* Reposition submit button for consistent placement */
 .feedback-submit-container {
     position: relative;
-    right: calc((-16%) - 120px);
+    width: 100%;
+    max-width: 950px; /* Match the feedback container */
     top: calc(100% + 15px);
-    width: auto;
     z-index: 10;
-    transform: translateX(0);
     display: flex;
     flex-direction: row;
-    justify-content: flex-start;
+    justify-content: flex-end; /* Align items to the right */
     align-items: center;
     gap: 15px;
+    margin: 0 auto; /* Center the container */
+    padding-right: 40px; /* Match padding with container */
+    box-sizing: border-box;
 }
 
 .feedback-back {
@@ -235,9 +242,15 @@
 
 .feedback-step-content {
     display: flex;
-    justify-content: space-between;
+    justify-content: center; /* Changed from space-between to center */
     align-items: center;
     width: 100%;
+    /* Remove any background, border, or decoration */
+    background: none;
+    border: none;
+    outline: none;
+    position: relative;
+    overflow: visible;
 }
 
 .feedback-images {

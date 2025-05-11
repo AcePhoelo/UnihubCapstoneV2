@@ -14,7 +14,7 @@ class Student(models.Model):
         help_text="The user account associated with this student."
     )
     full_name = models.CharField(
-        max_length=100,
+        max_length=400,
         verbose_name="Full Name",
         help_text="The full name of the student."
     )
