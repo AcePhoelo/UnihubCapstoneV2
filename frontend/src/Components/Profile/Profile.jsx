@@ -6,7 +6,6 @@ import logo from '../../assets/logo.png';
 import calendar from '../../assets/calendar.png';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { motion } from 'framer-motion';
-
 const Profile = () => {
     const navigate = useNavigate();
     const location = useLocation();

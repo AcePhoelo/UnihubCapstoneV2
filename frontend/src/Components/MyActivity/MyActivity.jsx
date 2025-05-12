@@ -10,6 +10,7 @@ import instagram from '../../assets/instagram.png';
 import youtube from '../../assets/youtube.png';
 import linkedin from '../../assets/linkedin.png';
 import { motion } from 'framer-motion';
+import { decodeHTMLEntities } from '../../utils';
 
 const MyActivity = () => {
     const navigate = useNavigate();
@@ -81,7 +82,7 @@ const MyActivity = () => {
                 }
             }
     
-            setStudentName(profile.full_name || "Unknown Student");
+            setStudentName(decodeHTMLEntities(profile.full_name || "Unknown Student"));
             setStudentID(profile.studentid || "Unknown ID");
 
             const profilePicUrl = profile.profile_picture || '';
@@ -211,8 +212,8 @@ const MyActivity = () => {
                 const leaderClubs = Array.isArray(userData.leadership_clubs)
                     ? userData.leadership_clubs.map(club => ({
                         id: club.id || "",
-                        name: club.name || "Unknown Club",
-                        description: club.description || "Club Leader",
+                        name: decodeHTMLEntities(club.name || "Unknown Club"),
+                        description: decodeHTMLEntities(club.description || "Club Leader"),
                         // Add complete URLs with domain
                         logo: club.logo ? `http://127.0.0.1:8000${club.logo}` : null,
                         banner: club.banner ? `http://127.0.0.1:8000${club.banner}` : null,
@@ -230,8 +231,8 @@ const MyActivity = () => {
                         .filter(club => !leadershipClubIds.includes(club.id)) // Filter out duplicates
                         .map(club => ({
                             id: club.id || "",
-                            name: club.name || "Unknown Club", 
-                            description: club.description || "",
+                            name: decodeHTMLEntities(club.name || "Unknown Club"), 
+                            description: decodeHTMLEntities(club.description || ""),
                             imageUrl: club.banner ? `http://127.0.0.1:8000${club.banner}` : null,
                             logoUrl: club.logo ? `http://127.0.0.1:8000${club.logo}` : null,
                         }))
@@ -288,12 +289,12 @@ const MyActivity = () => {
                     }
                         return {
                             id: event.id,
-                            name: event.name,
-                            description: event.description || 'No description',
+                            name: decodeHTMLEntities(event.name),
+                            description: decodeHTMLEntities(event.description || 'No description'),
                             imageUrl: imageUrl || null,
                             date: event.date || 'TBA',
                             time: event.time || 'TBA',
-                            place: event.location || 'TBA',
+                            place: decodeHTMLEntities(event.location || 'TBA'),
                             club: event.club_details || null,
                             // Add color information for hover effects if available
                             hoverColor: event.shadow_color ? 
@@ -326,7 +327,8 @@ const MyActivity = () => {
     const handleCalendarClick = () => navigate('/calendar');
 
     const getInitials = (fullName) => {
-        const names = fullName.trim().split(' ');
+        const decodedName = decodeHTMLEntities(fullName || '');
+        const names = decodedName.trim().split(' ');
         const initials = names[0]?.charAt(0).toUpperCase() + (names[1]?.charAt(0).toUpperCase() || '');
         return initials;
     };
@@ -426,8 +428,8 @@ const MyActivity = () => {
                                                     e.target.src = '/default-club-banner.png'; 
                                                 }}
                                             />
-                                            <div className="activity-club-card-name">{club.name}</div>
-                                            <div className="activity-club-card-description">{club.description}</div>
+                                            <div className="activity-club-card-name">{decodeHTMLEntities(club.name)}</div>
+                                            <div className="activity-club-card-description">{decodeHTMLEntities(club.description)}</div>
                                         </motion.div>
                                     </motion.div>
                                 ))}
@@ -511,11 +513,11 @@ const MyActivity = () => {
                                             onError={e => { e.target.onerror = null; e.target.src = '/default-event-banner.png' }}
                                         />
                                         <div className="activity-event-card-content">
-                                            <div className="activity-event-card-name">{evt.name}</div>
-                                            <div className="activity-event-card-description">{evt.description}</div>
+                                            <div className="activity-event-card-name">{decodeHTMLEntities(evt.name)}</div>
+                                            <div className="activity-event-card-description">{decodeHTMLEntities(evt.description)}</div>
                                             <div className="activity-spacer" />
                                             <div className="activity-event-card-meta">
-                                                Date: {evt.date} | Time: {evt.time} | Place: {evt.place}
+                                                Date: {evt.date} | Time: {evt.time} | Place: {decodeHTMLEntities(evt.place)}
                                             </div>
                                         </div>
                                     </motion.div>
@@ -565,7 +567,7 @@ const MyActivity = () => {
                                 </div>
                             )}
                         </div>
-                        <div className="profile-name">{studentName || "User's full name"}</div>
+                        <div className="profile-name">{decodeHTMLEntities(studentName) || "User's full name"}</div>
                         <div className="profile-student-id">Student ID: {studentID || "User's student ID"}</div>
                         
                         <div className="profile-divider"></div>

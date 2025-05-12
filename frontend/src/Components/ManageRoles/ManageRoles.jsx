@@ -5,6 +5,7 @@ import './ManageRoles.css';
 import Edit from '../../assets/edit.png';
 import { useNotification } from '../Notification/Context';
 import Delete from '../../assets/delete.png';
+import { decodeHTMLEntities } from '../../utils';
 
 const ManageRoles = () => {
     const [clubMembers, setClubMembers] = useState([]);
@@ -80,7 +81,7 @@ const ManageRoles = () => {
 
             const processedMembers = (data.results || []).map((member) => ({
                 id: member.student?.id || member.id,
-                full_name: member.student?.full_name || member.full_name || member.name,
+                full_name: decodeHTMLEntities(member.student?.full_name || member.full_name || member.name),
                 position: member.position || 'Member',
             }));
 
@@ -436,7 +437,7 @@ const ManageRoles = () => {
                                         className="edit-role-input"
                                     />
                                 ) : (
-                                    <span className="manage-role-name">{role.name}</span>
+                                    <span className="manage-role-name">{decodeHTMLEntities(role.name)}</span>
                                 )}
                                 <div className="manage-role-controls">
                                     <button onClick={() => handleDeleteRole(index)}>Delete</button>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './Sidebar.css';
 import { useNotification } from '../Notification/Context';
+import { decodeHTMLEntities } from '../../utils';
 
 const Sidebar = ({ isOpen, onClose, presidentEmail }) => {
   const [animate, setAnimate] = useState(false);
@@ -95,7 +96,7 @@ const Sidebar = ({ isOpen, onClose, presidentEmail }) => {
           <label>Club Leader</label>
           <div className="collab-sidebar-club-leader">
             <div className="collab-sidebar-avatar">{presidentEmail?.[0]?.toUpperCase()}</div>
-            <span className="collab-sidebar-leader-name">{presidentEmail}</span>
+            <span className="collab-sidebar-leader-name">{decodeHTMLEntities(presidentEmail)}</span>
           </div>
         </div>
         <form onSubmit={handleSubmit}>
@@ -113,7 +114,7 @@ const Sidebar = ({ isOpen, onClose, presidentEmail }) => {
               {Array.isArray(clubs) &&
                 clubs.map((club) => (
                   <option key={club.id} value={club.name}>
-                    {club.name}
+                    {decodeHTMLEntities(club.name)}
                   </option>
                 ))}
             </select>

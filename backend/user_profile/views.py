@@ -16,8 +16,8 @@ def student_list(request):
             "email": student.email,
             "studentid": student.studentid,
             "badges": student.badges,
-            "clubsjoined": list(student.clubsjoined.values_list('name', flat=True)),  # List of club names
-            "leadership_clubs": list(student.leadership_clubs.values_list('name', flat=True)),  # List of leadership club names
+            "clubsjoined": list(student.clubsjoined.values_list('name', flat=True)),  
+            "leadership_clubs": list(student.leadership_clubs.values_list('name', flat=True)),  
         })
     return JsonResponse(student_data, safe=False)
 

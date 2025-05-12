@@ -5,6 +5,7 @@ import satisfied from '../../assets/satisfied.png';
 import fine from '../../assets/fine.png';
 import unsatisfied from '../../assets/unsatisfied.png';
 import backIcon from '../../assets/Back.png';
+import { decodeHTMLEntities } from '../../utils';
 
 const FeedbackReview = () => {
     const navigate = useNavigate();
@@ -63,14 +64,16 @@ const FeedbackReview = () => {
     
     const getInitials = (fullName) => {
         if (!fullName) return 'N';
-        const names = fullName.trim().split(' ');
+        const decodedName = decodeHTMLEntities(fullName);
+        const names = decodedName.trim().split(' ');
         return names[0]?.charAt(0).toUpperCase() + (names[1]?.charAt(0).toUpperCase() || '');
     };
-
+    
     const formatName = (fullName) => {
         if (!fullName) return 'Anonymous';
-        const names = fullName.trim().split(' ');
-        if (names.length < 2) return fullName;
+        const decodedName = decodeHTMLEntities(fullName);
+        const names = decodedName.trim().split(' ');
+        if (names.length < 2) return decodedName;
         const surname = names.pop().toUpperCase(); 
         return `${surname} ${names.join(' ')}`; 
     };
@@ -85,7 +88,7 @@ const FeedbackReview = () => {
                     onClick={() => navigate(-1)}
                     style={{ cursor: 'pointer', marginRight: '16px' }}
                 />
-                <div className="feedback-review-eventname">{decodedEventName} Feedbacks</div>
+                <div className="feedback-review-eventname">{decodeHTMLEntities(decodedEventName)} Feedbacks</div>
             </div>
             <div className="feedback-review-body">
                 {loading ? (
@@ -109,7 +112,7 @@ const FeedbackReview = () => {
                                     <div className="feedback-name">
                                         {formatName(feedback.student_details?.full_name || 'Anonymous')}
                                     </div>
-                                    <div className="feedback-role">{feedback.role}</div>
+                                    <div className="feedback-role">{decodeHTMLEntities(feedback.role)}</div>
                                 </div>
                             </div>
                             <div className="liked-disliked-group">
@@ -117,11 +120,11 @@ const FeedbackReview = () => {
                                     <strong>Liked:</strong> {feedback.like}
                                 </div>
                                 <div className="feedback-disliked">
-                                    <strong>Disliked:</strong> {feedback.dislike}
+                                    <strong>Disliked:</strong> {decodeHTMLEntities(feedback.like)}
                                 </div>
                             </div>
                             <div className="review-description">
-                                {feedback.experience}
+                                {decodeHTMLEntities(feedback.experience)}
                             </div>
                         </div>
                     ))

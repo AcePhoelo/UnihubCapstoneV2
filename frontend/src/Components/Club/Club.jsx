@@ -11,6 +11,7 @@ import deleteIcon from '../../assets/delete_white.png';
 import Sidebar from '../CollabSidebar/Sidebar';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useNotification } from '../Notification/Context';
+import { decodeHTMLEntities } from '../../utils';
 
 const MemberCategorySection = ({ title, members, searchQuery, getInitials }) => {
     if (!members || members.length === 0) return null;
@@ -39,7 +40,7 @@ const MemberCategorySection = ({ title, members, searchQuery, getInitials }) => 
                             {!m.profile_picture && getInitials(m.full_name)}
                         </div>
                         <div className="person-info">
-                            <div className="person-name">{m.full_name || 'Unknown'}</div>
+                            <div className="person-name">{decodeHTMLEntities(m.full_name || 'Unknown')}</div>
                             <div className="person-id">{m.studentid || 'No ID'}</div>
                         </div>
                     </div>
@@ -653,7 +654,7 @@ const Club = () => {
                                     className="edit-club-name-input"
                                 />
                             ) : (
-                                <h1 className="club-page-name">{club.name}</h1>
+                                <h1 className="club-page-name">{decodeHTMLEntities(club.name)}</h1>
                             )}
                             <div className="club-banner-buttons">
                                 {isEditMode ? (
@@ -778,7 +779,7 @@ const Club = () => {
                                     </div>
                                 </>
                             ) : (
-                                (club.description || '').split('\n').map((line, i) => <p key={i}>{line}</p>)
+                                (club.description || '').split('\n').map((line, i) => <p key={i}>{decodeHTMLEntities(line)}</p>)
                             )}
                         </div>
                     </motion.div>
@@ -818,8 +819,8 @@ const Club = () => {
                                                 className="club-event-card-banner"
                                             />
                                             <div className="club-event-card-content">
-                                                <div className="club-event-card-name">{evt.name}</div>
-                                                <div className="club-event-card-description">{evt.description}</div>
+                                                <div className="club-event-card-name">{decodeHTMLEntities(evt.name)}</div>
+                                                <div className="club-event-card-description">{decodeHTMLEntities(evt.description)}</div>
                                                 <div className="club-spacer" />
                                                 <div className="club-event-card-meta">
                                                     Date: {evt.date} | Time: {evt.time} | Place: {evt.location}

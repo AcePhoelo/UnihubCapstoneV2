@@ -11,6 +11,7 @@ import fine_n from '../../assets/fine_n.png';
 import unsatisfied_n from '../../assets/unsatisfied_n.png';
 import backIcon from '../../assets/Back.png';
 import { useNotification } from '../Notification/Context';
+import { decodeHTMLEntities } from '../../utils';
 
 const Feedback = () => {
     const navigate = useNavigate();
@@ -217,8 +218,8 @@ const Feedback = () => {
                 try {
                     const errorData = await response.json();
                     const errorMessage = typeof errorData === 'object' 
-                        ? Object.entries(errorData).map(([field, errors]) => `${field}: ${errors}`).join(', ')
-                        : (errorData.detail || 'Failed to submit feedback.');
+                        ? Object.entries(errorData).map(([field, errors]) => `${field}: ${decodeHTMLEntities(errors)}`).join(', ')
+                        : decodeHTMLEntities(errorData.detail || 'Failed to submit feedback.');
                     setError(errorMessage);
                     error2(errorMessage);
                 } catch (jsonError) {
@@ -249,7 +250,7 @@ return (
                 onClick={() => navigate(-1)}
                 style={{ cursor: 'pointer', marginRight: '16px' }}
             />
-            <div className="feedback-eventname">{decodedEventName} Feedback</div>
+            <div className="feedback-eventname">{decodeHTMLEntities(decodedEventName)} Feedback</div>
         </div>
         
         <div className="feedback-wrapper">
@@ -274,7 +275,7 @@ return (
                     <div className="feedback-inputs">
                         <div className="feedback-input-group">
                             <div className="feedback-text">Your Name</div>
-                            <div className="feedback-user-name">{userProfile?.full_name || 'Loading...'}</div>
+                            <div className="feedback-user-name">{decodeHTMLEntities(userProfile?.full_name || 'Loading...')}</div>
                         </div>
                         <div className="feedback-input-group">
                             <div className="feedback-text">Choose your role</div>

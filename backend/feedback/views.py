@@ -23,11 +23,10 @@ class FeedbackSerializer(serializers.ModelSerializer):
     )
     
     class Meta:
-        model = Feedback  # Your existing model
+        model = Feedback
         fields = ['name', 'role', 'like', 'dislike', 'satisfaction', 'experience']
     
     def validate(self, data):
-        # Sanitize string inputs
         for field in ['name', 'role', 'like', 'dislike', 'experience']:
             if field in data and isinstance(data[field], str):
                 data[field] = clean_input(data[field])
@@ -59,7 +58,6 @@ class FeedbackListCreateView(ListCreateAPIView):
         event_name = self.request.query_params.get('event_name')
         user_id = self.request.query_params.get('user_id')
         
-        # Sanitize query parameters
         if event_id:
             event_id = clean_input(event_id)
         if event_name:
@@ -67,7 +65,6 @@ class FeedbackListCreateView(ListCreateAPIView):
         if user_id:
             user_id = clean_input(user_id)
         
-        # Filter with sanitized parameters
         if event_id:
             queryset = queryset.filter(event_id=event_id)
         if event_name:
@@ -83,5 +80,4 @@ class FeedbackListCreateView(ListCreateAPIView):
             student = Student.objects.get(user=self.request.user)
             serializer.save(student=student)
         except Student.DoesNotExist:
-            # Fallback if no student profile exists
             serializer.save()

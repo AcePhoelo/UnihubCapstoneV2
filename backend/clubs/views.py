@@ -30,7 +30,7 @@ def get_club_members(request, club_id):
 
 
 @api_view(['GET'])
-@permission_classes([AllowAny])  # Ensure the user is authenticated
+@permission_classes([AllowAny])
 def get_clubs_list(request):
     clubs = Club.objects.all()  # Fetch all clubs
     serializer = ClubListSerializer(clubs, many=True)  # Use the simplified serializer
@@ -169,7 +169,6 @@ def create_club(request):
     logo = request.FILES.get('logo')  # Get the uploaded logo file
     banner = request.FILES.get('banner')  # Get the uploaded banner file
 
-    # Debugging: Log the received data
     print("Received data:", data)
     print("Received members:", [value for key, value in request.POST.items() if key.startswith('members[')])
 
@@ -305,10 +304,9 @@ def add_club_role(request, club_id):
     try:
         club = Club.objects.get(id=club_id)
         role_name = clean_input(request.data.get('role'))
-        role_type = clean_input(request.data.get('type'))  # Missing clean_input
+        role_type = clean_input(request.data.get('type'))
         members = request.data.get('members', [])
 
-        # Validate input
         if not role_name or not role_type:
             return Response({'error': 'Role name and type are required'}, status=400)
         if not members:
@@ -355,7 +353,6 @@ def delete_club_role(request, club_id, role_id=None):
             if not role_name:
                 return Response({"error": "Role name is required"}, status=400)
 
-            # Skip if trying to delete the President role
             if role_name == "President":
                 return Response({"error": "Cannot delete the President role"}, status=400)
 
@@ -387,7 +384,6 @@ def delete_club_role(request, club_id, role_id=None):
             except ClubMembership.DoesNotExist:
                 return Response({"error": "Custom role not found"}, status=404)
         else:
-            # Handle numeric role_id - this is likely a ClubMembership ID
             try:
                 # Get the role name first
                 membership = ClubMembership.objects.get(id=role_id, club=club)

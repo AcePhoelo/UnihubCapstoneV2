@@ -12,6 +12,7 @@ import ColorThief from 'colorthief';
 import chroma from 'chroma-js';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { decodeHTMLEntities } from '../../utils';
 
 const createGradientFromPalette = (palette, stops = 4) => {
     const colors = palette.map(c => `rgb(${c.join(',')})`);
@@ -207,7 +208,7 @@ const ClubDirectory = () => {
                                 cursor: 'pointer',
                             }}
                         >
-                            {!currentUserProfilePic && getInitials(currentUserName)}
+                            {!currentUserProfilePic && getInitials(decodeHTMLEntities(currentUserName))}
                         </div>
                     )}
                     {!isGuest && (
@@ -268,7 +269,7 @@ const ClubDirectory = () => {
                                     className="featured-club-image"
                                 />
                             )}
-                            <div className="featured-club-name">{pinnedClubs[featuredIndex].name}</div>
+                            <div className="featured-club-name">{decodeHTMLEntities(pinnedClubs[featuredIndex].name)}</div>
                         </motion.div>
                         <button
                             className="arrow right-arrow"
@@ -307,8 +308,8 @@ const ClubDirectory = () => {
                                     ) : (
                                         <div className="club-card-banner">No Banner Available</div>
                                     )}
-                                    <div className="club-card-name">{club.name}</div>
-                                    <div className="club-card-description">{club.description}</div>
+                                    <div className="club-card-name">{decodeHTMLEntities(club.name)}</div>
+                                    <div className="club-card-description">{decodeHTMLEntities(club.description)}</div>
                                 </div>
                             </motion.div>
                         ))}

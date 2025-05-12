@@ -22,7 +22,7 @@ class EventCreateView(generics.CreateAPIView):
     def perform_create(self, serializer):
         club_id = self.request.data.get('club')
         if not club_id:
-            raise PermissionDenied("Club ID is required.")  # Add a clearer error message
+            raise PermissionDenied("Club ID is required.")
         try:
             club = Club.objects.get(id=club_id)
         except Club.DoesNotExist:

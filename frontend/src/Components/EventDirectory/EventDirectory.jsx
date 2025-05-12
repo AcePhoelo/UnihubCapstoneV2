@@ -13,6 +13,7 @@ import facebook from '../../assets/facebook.png';
 import instagram from '../../assets/instagram.png';
 import youtube from '../../assets/youtube.png';
 import linkedin from '../../assets/linkedin.png';
+import { decodeHTMLEntities } from '../../utils';
 
 const createGradientFromPalette = (palette, stops = 4) => {
     const colors = palette.map(c => `rgb(${c.join(',')})`);
@@ -127,7 +128,8 @@ const EventDirectory = () => {
     }, [events, colorsReady]);
 
     const getInitials = name => {
-        const [first = '', last = ''] = name.trim().split(' ');
+        const decodedName = decodeHTMLEntities(name || '');
+        const [first = '', last = ''] = decodedName.trim().split(' ');
         return (first[0] || '').toUpperCase() + (last[0] || '').toUpperCase();
     };
 
@@ -295,7 +297,7 @@ const EventDirectory = () => {
                                 className="featured-event-image"
                             />
                             <div className="featured-event-name">
-                                {pinnedEvents[featuredIndex].name}
+                                {decodeHTMLEntities(pinnedEvents[featuredIndex].name)}
                             </div>
                         </motion.div>
                         <button
@@ -353,13 +355,12 @@ const EventDirectory = () => {
                                                 className="event-card-banner"
                                             />
                                             <div className="event-card-content">
-                                                <div className="event-card-name">{evt.name}</div>
+                                                <div className="event-card-name">{decodeHTMLEntities(evt.name)}</div>
                                                 <div className="event-card-description">
-                                                    {evt.description}
+                                                    {decodeHTMLEntities(evt.description)}
                                                 </div>
-                                                <div className="spacer" />
                                                 <div className="event-card-meta">
-                                                    Date: {evt.date} | Time: {evt.time} | Place: {evt.place}, {evt.unit}
+                                                    Date: {evt.date} | Time: {evt.time} | Place: {decodeHTMLEntities(evt.place)}, {decodeHTMLEntities(evt.unit)}
                                                 </div>
                                             </div>
                                         </motion.div>
@@ -403,7 +404,7 @@ const EventDirectory = () => {
                                                     Logo
                                                 </div>
                                             )}
-                                            <div className="event-club-name">{club && club.name ? club.name : "Unknown Club"}</div>
+                                            <div className="event-club-name">{decodeHTMLEntities(club && club.name ? club.name : "Unknown Club")}</div>
                                         </motion.div>
                                     </motion.div>
                                 );

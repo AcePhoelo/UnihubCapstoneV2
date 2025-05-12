@@ -4,6 +4,7 @@ import './CreationClub.css';
 import { useNavigate } from 'react-router-dom';
 import backIcon from '../../assets/Back.png';
 import { useNotification } from '../Notification/Context';
+import { decodeHTMLEntities } from '../../utils';
 
 const CreationClub = () => {
     const navigate = useNavigate();
@@ -73,9 +74,10 @@ const CreationClub = () => {
                 success2('Club created successfully!');
                 // Use React Router navigation instead of window.location
                 navigate(`/club/${data.club.id}`);
-            }else {
+            } else {
                 const errorData = await response.json();
-                setErrorMessage(errorData.error || 'Failed to create club');
+                // Decode HTML entities in error message
+                setErrorMessage(decodeHTMLEntities(errorData.error || 'Failed to create club'));
             }
         } catch (error) {
             console.error('Error creating club:', error);
@@ -245,7 +247,7 @@ const CreationClub = () => {
                     </div>
 
                     {errorMessage && (
-                        <div className="error-message">{errorMessage}</div>
+                        <div className="error-message">{decodeHTMLEntities(errorMessage)}</div>
                     )}
 
                     <button

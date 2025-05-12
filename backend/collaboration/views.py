@@ -62,7 +62,7 @@ def send_email(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
-            data = clean_input(data)  # Sanitize all input data at once
+            data = clean_input(data)
             
             your_club = data.get('your_club')
             sender_email = data.get('name')

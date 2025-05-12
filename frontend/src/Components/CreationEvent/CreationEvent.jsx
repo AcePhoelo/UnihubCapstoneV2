@@ -3,6 +3,7 @@ import './CreationEvent.css';
 import { useNavigate } from 'react-router-dom';
 import backIcon from '../../assets/Back.png';
 import { useNotification } from '../Notification/Context';
+import { decodeHTMLEntities } from '../../utils';
 
 const CreationEvent = () => {
     const navigate = useNavigate();
@@ -108,7 +109,7 @@ const CreationEvent = () => {
                 window.location.href = '/event-directory';
             } else {
                 const errorData = await response.json();
-                setErrorMessage(errorData.error || 'Failed to create event');
+                setErrorMessage(decodeHTMLEntities(errorData.error || 'Failed to create event'));
             }
         } catch (error) {
             console.error('Error creating event:', error);
@@ -186,7 +187,7 @@ const CreationEvent = () => {
                                     </option>
                                     {clubs.map((club) => (
                                         <option key={club.id} value={club.id}>
-                                            {club.name}
+                                            {decodeHTMLEntities(club.name)}
                                         </option>
                                     ))}
                                 </select>
