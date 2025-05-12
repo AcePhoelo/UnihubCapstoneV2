@@ -159,7 +159,11 @@ def populate_data():
     for i in range(1, 11):
         student_id = f"21{str(100000 + i).zfill(6)}"  # Generate student ID like 21XXXXXX
         email = f"{student_id}@student.curtin.edu.au"  # Generate email based on student ID
-
+        
+        # Convert student_id to integer for primary key
+        student_id_int = int(student_id)
+        
+        # Create or update user
         dummy_user, created = User.objects.get_or_create(
             username=student_id,
             defaults={
@@ -171,15 +175,41 @@ def populate_data():
             }
         )
 
-        dummy_student, created = Student.objects.get_or_create(
-            user=dummy_user,
-            defaults={
-                "full_name": f"Dummy User {i}",
-                "email": email,
-                "studentid": student_id,
-                "profile_picture": None,
-            }
-        )
+        # Check if student profile exists
+        dummy_student = Student.objects.filter(user=dummy_user).first()
+
+        # If student exists but ID doesn't match desired ID, recreate it
+        if dummy_student and dummy_student.id != student_id_int:
+            old_id = dummy_student.id
+            
+            # Update all references in the Club model
+            Club.objects.filter(president_id=old_id).update(president_id=None)
+            
+            # Delete all references in the Member model
+            ClubMembership.objects.filter(student_id=old_id).delete()
+            
+            # Delete the old student record
+            dummy_student.delete()
+            
+            # Create a new student record with the desired ID
+            dummy_student = Student.objects.create(
+                id=student_id_int,  # Set primary key explicitly
+                user=dummy_user,
+                full_name=f"Dummy User {i}",
+                email=email,
+                studentid=student_id,
+                profile_picture=None,
+            )
+        # If student doesn't exist, create it with the desired ID
+        elif not dummy_student:
+            dummy_student = Student.objects.create(
+                id=student_id_int,  # Set primary key explicitly
+                user=dummy_user,
+                full_name=f"Dummy User {i}",
+                email=email,
+                studentid=student_id,
+                profile_picture=None,
+            )
 
         # Assign the first 5 dummy users to the Board Game Club
         if i <= 5:
@@ -188,7 +218,6 @@ def populate_data():
                 club=board_game_club,
                 defaults={"position": "Member"}
             )
-
         # Assign the remaining 5 dummy users to the Community Service Club
         else:
             ClubMembership.objects.get_or_create(
@@ -197,7 +226,7 @@ def populate_data():
                 defaults={"position": "Member"}
             )
 
-    print("Data populated successfully!")
+        print("Data populated successfully!")
 
 if __name__ == "__main__":
     populate_data()

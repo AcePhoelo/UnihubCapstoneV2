@@ -10,6 +10,8 @@ def create_or_update_student_profile(sender, instance, created, **kwargs):
         Student.objects.create(
             user=instance,
             full_name=f"{instance.first_name} {instance.last_name}",
+            first_name=instance.first_name,
+            last_name=instance.last_name,
             email=instance.email,
             studentid=instance.username,  # Assuming username is the student ID
         )
@@ -18,6 +20,8 @@ def create_or_update_student_profile(sender, instance, created, **kwargs):
         student = Student.objects.filter(user=instance).first()
         if student:
             student.full_name = f"{instance.first_name} {instance.last_name}"
+            student.first_name = instance.first_name
+            student.last_name = instance.last_name
             student.email = instance.email
             student.studentid = instance.username
             student.save()
