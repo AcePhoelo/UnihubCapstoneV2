@@ -6,7 +6,7 @@ from django.conf import settings
 from django.http import JsonResponse
 from .forms import CollaborationForm
 import json
-
+from api.utils import clean_input
 
 # MODIFIED CODE - USE THIS ONE 
 # @csrf_exempt
@@ -62,6 +62,8 @@ def send_email(request):
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
+            data = clean_input(data)  # Sanitize all input data at once
+            
             your_club = data.get('your_club')
             sender_email = data.get('name')
             receiver_email = data.get('receiver_email')

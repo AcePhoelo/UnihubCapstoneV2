@@ -7,6 +7,8 @@ from .forms import UpdatePositionForm
 from user_profile.models import Student
 from .serializers import ClubSerializer, ClubMembershipSerializer, ClubListSerializer
 from user_profile.serializers import StudentSerializer
+from api.utils import clean_input
+
 class MemberPagination(PageNumberPagination):
     page_size = 10
 
@@ -67,7 +69,7 @@ def add_member_to_club(request, club_id):
     try:
         club = Club.objects.get(id=club_id)
         student_id = request.data.get('student_id')
-        position = request.data.get('position', 'Member')
+        position = clean_input(request.data.get('position', 'Member'))
 
         if not student_id:
             return Response({"error": "Student ID is required"}, status=400)
@@ -77,7 +79,7 @@ def add_member_to_club(request, club_id):
         # Create or update the ClubMembership record
         membership, created = ClubMembership.objects.get_or_create(club=club, student=student)
         membership.position = position
-        membership.custom_position = request.data.get('custom_position', '')
+        membership.custom_position = clean_input(request.data.get('custom_position', ''))
         membership.save()
 
         return Response({"message": "Member added successfully"}, status=201)
@@ -99,7 +101,8 @@ def update_member_in_club(request, club_id, student_id):
         membership = ClubMembership.objects.get(club=club, student=student)
 
         # Use UpdatePositionForm for validation
-        form = UpdatePositionForm(data=request.data, instance=membership)
+        form_data = {k: clean_input(v) if isinstance(v, str) else v for k, v in request.data.items()}
+        form = UpdatePositionForm(data=form_data, instance=membership)
         if form.is_valid():
             form.save()  # Save the updated membership
             return Response({
@@ -189,8 +192,8 @@ def create_club(request):
 
     # Create the club
     club = Club.objects.create(
-        name=data['name'],
-        description=data['description'],
+        name=clean_input(data['name']),
+        description=clean_input(data['description']),
         logo=logo,  # Save the uploaded logo file
         banner=banner,  # Save the uploaded banner file
         president=request.user.student  # Assuming the logged-in user is the president
@@ -225,9 +228,9 @@ def update_club(request, club_id):
 
         # Update fields
         if 'name' in data:
-            club.name = data['name']
+            club.name = clean_input(data['name'])
         if 'description' in data:
-            club.description = data['description']
+            club.description = clean_input(data['description'])
         if 'logo' in data:
             club.logo = data['logo']
         if 'banner' in data:
@@ -301,8 +304,8 @@ def add_club_role(request, club_id):
     """Add a new role to the club."""
     try:
         club = Club.objects.get(id=club_id)
-        role_name = request.data.get('role')
-        role_type = request.data.get('type')
+        role_name = clean_input(request.data.get('role'))
+        role_type = clean_input(request.data.get('type'))  # Missing clean_input
         members = request.data.get('members', [])
 
         # Validate input
@@ -348,7 +351,7 @@ def delete_club_role(request, club_id, role_id=None):
 
         # Handle standard roles
         if not role_id:
-            role_name = request.data.get('role')
+            role_name = clean_input(request.data.get('role'))
             if not role_name:
                 return Response({"error": "Role name is required"}, status=400)
 
@@ -431,7 +434,7 @@ def transfer_leadership(request, club_id):
     try:
         club = Club.objects.get(id=club_id)
         current_user = request.user.student
-        new_president_id = request.data.get('new_president_id')
+        new_president_id = clean_input(request.data.get('new_president_id'))
         
         # Verify the current user is the president
         if club.president != current_user:

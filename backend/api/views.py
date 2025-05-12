@@ -10,6 +10,7 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from user_profile.models import Student
+from .utils import clean_input
 
 # No custom token view is needed now; use the default TokenObtainPairView in your URLs.
 # If you still need a login view for non-token-related authentication, you can update it to use "username".
@@ -53,6 +54,7 @@ def login_view(request):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
+            data = clean_input(data)  # Sanitize input data
             # Use "username" because the default authentication expects that field.
             username = data.get("username")
             password = data.get("password")

@@ -7,6 +7,7 @@ from .models import Event
 from .serializers import EventSerializer
 from clubs.models import Club
 from user_profile.models import Student
+from api.utils import clean_input
 
 class EventPagination(PageNumberPagination):
     page_size = 10
@@ -76,5 +77,6 @@ class EventListView(generics.ListAPIView):
         queryset = self.queryset
         club_id = self.request.query_params.get('club_id')
         if club_id:
+            club_id = clean_input(club_id)
             queryset = queryset.filter(club_id=club_id)
-        return queryset.order_by('date')  # Order by a valid field such as 'date'
+        return queryset.order_by('date')
