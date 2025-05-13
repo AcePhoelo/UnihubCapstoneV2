@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Login.css';
 import bg from '../../assets/login-background.jpeg';
+import { decodeHTMLEntities } from '../../utils';
 
 const Login = () => {
     const navigate = useNavigate();
@@ -20,14 +21,24 @@ const Login = () => {
 
 
     const handleLoginClick = async () => {
+        // Clear any previous errors
+        setError("");
+        
+        // Basic client-side validation
         if (!student_id || !password) {
-            setError("Login was unsuccessful. Please correct the errors and try again.\nInvalid Curtin ID or password.");
+            setError("Login ID and password are required.");
+            return;
+        }
+        
+        // Validate Student ID format on frontend too
+        if (!/^\d{8}$/.test(student_id)) {
+            setError("Student ID must be exactly 8 digits.");
             return;
         }
     
         setIsLoading(true);
         try {
-            const response = await fetch('http://127.0.0.1:8000/api/token/', {
+            const response = await fetch('http://54.169.81.75:8000/api/token/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -39,13 +50,15 @@ const Login = () => {
             setIsLoading(false);
     
             if (response.ok && data.access) {
+                // Handle successful login (existing code)
                 localStorage.setItem('access_token', data.access);
                 localStorage.setItem('refresh_token', data.refresh);
                 localStorage.setItem('student_id', student_id);
                 localStorage.setItem('isGuest', 'false');
         
+                // Fetch profile (existing code)
                 const accessToken = localStorage.getItem('access_token');
-                const profileResponse = await fetch('http://127.0.0.1:8000/profile/profile/', {
+                const profileResponse = await fetch('http://54.169.81.75:8000/profile/profile/', {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${accessToken}`,
@@ -56,7 +69,7 @@ const Login = () => {
                 const profileData = await profileResponse.json();
         
                 if (profileResponse.ok) {
-                    // Ensure the profile has all the needed fields
+                    // Handle successful profile fetch (existing code)
                     const enhancedProfile = {
                         ...profileData,
                         id: profileData.id || profileData.user_id,
@@ -70,10 +83,20 @@ const Login = () => {
                 } else {
                     setError("Failed to fetch profile data. Please try again.");
                 }
+            } else {
+                if (response.status === 401) {
+                    setError("Invalid student ID or password.");
+                } else if (response.status === 400) {
+                    setError(decodeHTMLEntities(data.detail || data.message || "Invalid input. Please check your credentials."));
+                } else if (response.status === 429) {
+                    setError("Too many login attempts. Please try again later.");
+                } else {
+                    setError("Login failed. Please try again.");
+                }
             }
         } catch (error) {
             setIsLoading(false);
-            setError("Login was unsuccessful. Please try again later.");
+            setError("Connection error. Please check your internet and try again.");
         }
     };
 

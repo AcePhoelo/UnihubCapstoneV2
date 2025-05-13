@@ -6,6 +6,16 @@ from api.views import login_view, set_csrf_cookie
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from feedback.views import FeedbackListCreateView
 from .views import frontend
+from api.throttling import AuthRateThrottle
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+
+# Create a custom token view that includes throttling
+class ThrottledTokenObtainPairView(TokenObtainPairView):
+    throttle_classes = [AuthRateThrottle]
+
+class ThrottledTokenRefreshView(TokenRefreshView):
+    throttle_classes = [AuthRateThrottle]
+
 
 urlpatterns = [
     # Frontend
@@ -15,8 +25,8 @@ urlpatterns = [
     path("admin/", admin.site.urls),
 
     # API endpoints
-    path("api/token/", TokenObtainPairView.as_view(), name="get_token"),
-    path("api/token/refresh/", TokenRefreshView.as_view(), name="refresh"),
+    path("api/token/", ThrottledTokenObtainPairView.as_view(), name="token_obtain_pair"),
+    path("api/token/refresh/", ThrottledTokenRefreshView.as_view(), name="token_refresh"),
     path("api/login/", login_view, name="login"),
     path("api/csrf/", set_csrf_cookie, name="set_csrf_cookie"),
     path("api/", include("api.urls")),

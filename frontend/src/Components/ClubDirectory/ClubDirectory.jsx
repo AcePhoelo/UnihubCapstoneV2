@@ -12,6 +12,7 @@ import ColorThief from 'colorthief';
 import chroma from 'chroma-js';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { decodeHTMLEntities } from '../../utils';
 
 const createGradientFromPalette = (palette, stops = 4) => {
     const colors = palette.map(c => `rgb(${c.join(',')})`);
@@ -60,7 +61,7 @@ const ClubDirectory = () => {
         setCurrentUserName(currentUserData.full_name || currentUserData.name || '');
         setCurrentUserProfilePic(
             profilePicUrl.startsWith('http') ? profilePicUrl :
-            profilePicUrl ? `http://127.0.0.1:8000${profilePicUrl}` : ''
+            profilePicUrl ? `http://54.169.81.75:8000${profilePicUrl}` : ''
         );
 
         const fetchClubs = async () => {
@@ -74,7 +75,7 @@ const ClubDirectory = () => {
             }
 
             try {
-                const res = await fetch('http://127.0.0.1:8000/clubs/clubs/', { headers });
+                const res = await fetch('http://54.169.81.75:8000/clubs/clubs/', { headers });
 
                 if (res.status === 401 && !isGuest) {
                     throw new Error('Unauthorized');
@@ -84,7 +85,7 @@ const ClubDirectory = () => {
 
                 const enriched = await Promise.all(data.map(async club => {
                     try {
-                        const imgRes = await fetch(`http://127.0.0.1:8000${club.banner}`);
+                        const imgRes = await fetch(`http://54.169.81.75:8000${club.banner}`);
                         const blob = await imgRes.blob();
                         const url = URL.createObjectURL(blob);
                         const img = new Image();
@@ -207,7 +208,7 @@ const ClubDirectory = () => {
                                 cursor: 'pointer',
                             }}
                         >
-                            {!currentUserProfilePic && getInitials(currentUserName)}
+                            {!currentUserProfilePic && getInitials(decodeHTMLEntities(currentUserName))}
                         </div>
                     )}
                     {!isGuest && (
@@ -263,12 +264,12 @@ const ClubDirectory = () => {
                         >
                             {pinnedClubs[featuredIndex].banner && (
                                 <img
-                                    src={`http://127.0.0.1:8000${pinnedClubs[featuredIndex].banner}`}
+                                    src={`http://54.169.81.75:8000${pinnedClubs[featuredIndex].banner}`}
                                     alt={pinnedClubs[featuredIndex].name}
                                     className="featured-club-image"
                                 />
                             )}
-                            <div className="featured-club-name">{pinnedClubs[featuredIndex].name}</div>
+                            <div className="featured-club-name">{decodeHTMLEntities(pinnedClubs[featuredIndex].name)}</div>
                         </motion.div>
                         <button
                             className="arrow right-arrow"
@@ -300,15 +301,15 @@ const ClubDirectory = () => {
                                 <div className="club-card">
                                     {club.banner ? (
                                         <img
-                                            src={`http://127.0.0.1:8000${club.banner}`}
+                                            src={`http://54.169.81.75:8000${club.banner}`}
                                             alt={club.name}
                                             className="club-card-banner"
                                         />
                                     ) : (
                                         <div className="club-card-banner">No Banner Available</div>
                                     )}
-                                    <div className="club-card-name">{club.name}</div>
-                                    <div className="club-card-description">{club.description}</div>
+                                    <div className="club-card-name">{decodeHTMLEntities(club.name)}</div>
+                                    <div className="club-card-description">{decodeHTMLEntities(club.description)}</div>
                                 </div>
                             </motion.div>
                         ))}

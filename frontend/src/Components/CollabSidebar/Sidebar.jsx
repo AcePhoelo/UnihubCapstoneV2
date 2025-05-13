@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import './Sidebar.css';
 import { useNotification } from '../Notification/Context';
+import { decodeHTMLEntities } from '../../utils';
 
-const Sidebar = ({ isOpen, onClose, presidentEmail }) => {
+const Sidebar = ({ isOpen, onClose, presidentEmail, currentClubName }) => {
   const [animate, setAnimate] = useState(false);
   const [formData, setFormData] = useState({
     yourClub: '',
@@ -11,6 +12,7 @@ const Sidebar = ({ isOpen, onClose, presidentEmail }) => {
   });
   const { success: success2, error: error2 } = useNotification();
   const [clubs, setClubs] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -20,7 +22,7 @@ const Sidebar = ({ isOpen, onClose, presidentEmail }) => {
 
       const token = localStorage.getItem('access_token');
 
-      fetch('http://127.0.0.1:8000/clubs/list', {
+      fetch('http://54.169.81.75:8000/clubs/list', {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
@@ -30,7 +32,11 @@ const Sidebar = ({ isOpen, onClose, presidentEmail }) => {
         .then((response) => response.json())
         .then((data) => {
           if (Array.isArray(data)) {
-            setClubs(data);
+            // Filter out the current club from the list
+            const filteredClubs = data.filter(club => 
+              club.name !== currentClubName
+            );
+            setClubs(filteredClubs);
           } else {
             console.error('Invalid data format:', data);
             setClubs([]);
@@ -43,7 +49,7 @@ const Sidebar = ({ isOpen, onClose, presidentEmail }) => {
     } else {
       setAnimate(false);
     }
-  }, [isOpen]);
+  }, [isOpen, currentClubName]);
 
   if (!isOpen && !animate) return null;
 
@@ -54,8 +60,10 @@ const Sidebar = ({ isOpen, onClose, presidentEmail }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
+    
     try {
-      const response = await fetch('http://127.0.0.1:8000/collaboration/send-email/', {
+      const response = await fetch('http://54.169.81.75:8000/collaboration/send-email/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -77,6 +85,8 @@ const Sidebar = ({ isOpen, onClose, presidentEmail }) => {
     } catch (error) {
       console.error('Error sending collaboration request:', error);
       error2('An error occurred while sending the request.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -95,7 +105,7 @@ const Sidebar = ({ isOpen, onClose, presidentEmail }) => {
           <label>Club Leader</label>
           <div className="collab-sidebar-club-leader">
             <div className="collab-sidebar-avatar">{presidentEmail?.[0]?.toUpperCase()}</div>
-            <span className="collab-sidebar-leader-name">{presidentEmail}</span>
+            <span className="collab-sidebar-leader-name">{decodeHTMLEntities(presidentEmail)}</span>
           </div>
         </div>
         <form onSubmit={handleSubmit}>
@@ -113,7 +123,7 @@ const Sidebar = ({ isOpen, onClose, presidentEmail }) => {
               {Array.isArray(clubs) &&
                 clubs.map((club) => (
                   <option key={club.id} value={club.name}>
-                    {club.name}
+                    {decodeHTMLEntities(club.name)}
                   </option>
                 ))}
             </select>
@@ -137,8 +147,13 @@ const Sidebar = ({ isOpen, onClose, presidentEmail }) => {
               required
             />
           </div>
-          <button type="submit" className="collab-sidebar-send-button">
-            Send Request
+          <button 
+            type="submit" 
+            className="collab-sidebar-send-button"
+            disabled={isLoading}
+            style={{ opacity: isLoading ? 0.7 : 1 }}
+          >
+            {isLoading ? 'Sending message...' : 'Send Request'}
           </button>
         </form>
       </div>

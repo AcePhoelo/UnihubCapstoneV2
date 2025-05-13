@@ -1,5 +1,3 @@
-# views.py
-
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.contrib.auth import authenticate
@@ -10,6 +8,10 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from user_profile.models import Student
+from .utils import clean_input
+from rest_framework.decorators import throttle_classes
+from api.throttling import AuthRateThrottle
+
 
 # No custom token view is needed now; use the default TokenObtainPairView in your URLs.
 # If you still need a login view for non-token-related authentication, you can update it to use "username".
@@ -49,10 +51,12 @@ def set_csrf_cookie(request):
     return JsonResponse({"message": "CSRF cookie set"})
 
 @ensure_csrf_cookie
+@throttle_classes([AuthRateThrottle])
 def login_view(request):
     if request.method == "POST":
         try:
             data = json.loads(request.body)
+            data = clean_input(data)
             # Use "username" because the default authentication expects that field.
             username = data.get("username")
             password = data.get("password")
@@ -60,6 +64,14 @@ def login_view(request):
             if not username or not password:
                 return JsonResponse(
                     {"success": False, "message": "Username and password are required."},
+                    status=400
+                )
+            
+            # Verify that username a 8 digit student id
+            import re
+            if not re.match(r'^\d{8}$', username):
+                return JsonResponse(
+                    {"success": False, "message": "Student ID must be exactly 8 digits."},
                     status=400
                 )
 
@@ -73,7 +85,7 @@ def login_view(request):
                 })
             else:
                 return JsonResponse(
-                    {"success": False, "message": "Invalid username or password"},
+                    {"success": False, "message": "Invalid student ID or password"},
                     status=401
                 )
         except json.JSONDecodeError:

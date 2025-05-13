@@ -13,6 +13,7 @@ import Sidebar from '../CollabSidebar/Sidebar';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useNotification } from '../Notification/Context';
+import { decodeHTMLEntities } from '../../utils';
 
 const Event = () => {
     const navigate = useNavigate();
@@ -68,7 +69,7 @@ const Event = () => {
         formData.append('location', draftLocation);
 
         const res = await fetch(
-            `http://127.0.0.1:8000/api/event/add_event/${event.id}/`,
+            `http://54.169.81.75:8000/api/event/add_event/${event.id}/`,
             {
                 method: 'PATCH',
                 headers: { Authorization: `Bearer ${token}` },
@@ -110,7 +111,7 @@ const Event = () => {
         formData.append('description', draftDescription);
 
         const res = await fetch(
-            `http://127.0.0.1:8000/api/event/add_event/${event.id}/`,
+            `http://54.169.81.75:8000/api/event/add_event/${event.id}/`,
             {
                 method: 'PATCH',
                 headers: { Authorization: `Bearer ${token}` },
@@ -138,7 +139,7 @@ const Event = () => {
                 headers.Authorization = `Bearer ${token}`;
             }
             
-            const response = await fetch(`http://127.0.0.1:8000/api/event/event_registration/${event.id}/participants/`, {
+            const response = await fetch(`http://54.169.81.75:8000/api/event/event_registration/${event.id}/participants/`, {
                 method: 'GET',
                 headers: headers,
             });
@@ -177,7 +178,8 @@ const Event = () => {
 
     const getInitials = (fullName) => {
         if (!fullName) return '?';
-        const names = fullName.trim().split(' ');
+        const decodedName = decodeHTMLEntities(fullName);
+        const names = decodedName.trim().split(' ');
         return names[0]?.charAt(0).toUpperCase() + (names[1]?.charAt(0).toUpperCase() || '');
     };
 
@@ -199,7 +201,7 @@ const Event = () => {
             
             setStudentName(currentUserData.full_name || currentUserData.name || 'Unknown Student');
             setProfilePicture(profilePicUrl.startsWith('http') ? profilePicUrl : 
-                             profilePicUrl ? `http://127.0.0.1:8000${profilePicUrl}` : '');
+                             profilePicUrl ? `http://54.169.81.75:8000${profilePicUrl}` : '');
         }
     }, [isGuest]);
     
@@ -214,7 +216,7 @@ const Event = () => {
                 console.log("Current user studentID:", currentStudentID);
                 
                 // First get the event details
-                const response = await fetch(`http://127.0.0.1:8000/api/event/add_event/`, {
+                const response = await fetch(`http://54.169.81.75:8000/api/event/add_event/`, {
                     method: 'GET',
                     headers: {
                         'Authorization': token ? `Bearer ${token}` : '',
@@ -256,7 +258,7 @@ const Event = () => {
                     if (!isGuest && event.club) {
                         try {
                             console.log("Fetching club data for club ID:", event.club);
-                            const clubResponse = await fetch(`http://127.0.0.1:8000/clubs/clubs/${event.club}/`, {
+                            const clubResponse = await fetch(`http://54.169.81.75:8000/clubs/clubs/${event.club}/`, {
                                 headers: {
                                     'Authorization': token ? `Bearer ${token}` : '',
                                     'Content-Type': 'application/json',
@@ -331,7 +333,7 @@ useEffect(() => {
                         console.log("Checking registration with student ID:", studentID);
                         
                         const response = await fetch(
-                            `http://127.0.0.1:8000/api/event/event_registration/${event.id}/participants/`,
+                            `http://54.169.81.75:8000/api/event/event_registration/${event.id}/participants/`,
                             {
                                 headers: {
                                     'Authorization': `Bearer ${token}`,
@@ -387,7 +389,7 @@ useEffect(() => {
             try {
                 const token = localStorage.getItem('access_token');
                 
-                const response = await fetch(`http://127.0.0.1:8000/api/event/delete_event/${event.id}/`, {
+                const response = await fetch(`http://54.169.81.75:8000/api/event/add_event/${event.id}/`, {
                     method: 'DELETE',
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -428,7 +430,7 @@ useEffect(() => {
                     return;
                 }
                 
-                const response = await fetch(`http://127.0.0.1:8000/api/event/event_registration/delete/${userRegistration.id}/`, {
+                const response = await fetch(`http://54.169.81.75:8000/api/event/event_registration/delete/${userRegistration.id}/`, {
                     method: 'DELETE',
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -491,7 +493,7 @@ useEffect(() => {
                 formData.append('banner', newBanner);
             }
             
-            const response = await fetch(`http://127.0.0.1:8000/api/event/add_event/${event.id}/`, {
+            const response = await fetch(`http://54.169.81.75:8000/api/event/add_event/${event.id}/`, {
                 method: 'PATCH', // Use PATCH instead of PUT for partial updates
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -547,7 +549,7 @@ const handleRemoveParticipant = async (participantId) => {
     
     try {
         const token = localStorage.getItem('access_token');
-        const response = await fetch(`http://127.0.0.1:8000/api/event/event_registration/delete/${participantId}/`, {
+        const response = await fetch(`http://54.169.81.75:8000/api/event/event_registration/delete/${participantId}/`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -737,7 +739,7 @@ console.log("- Can edit event:", isEventCreator || isClubLeaderForEvent);
                                     className="edit-club-name-input"
                                 />
                             ) : (
-                                <h1 className="club-page-name">{event.name}</h1>
+                                <h1 className="club-page-name">{decodeHTMLEntities(event.name)}</h1>
                             )}
                             {isEditMode ? (
                                 <div className="event-banner-buttons">
@@ -835,7 +837,7 @@ console.log("- Can edit event:", isEventCreator || isClubLeaderForEvent);
                             </div>
                         </>
                     ) : event.description ? (
-                        event.description.split('\n').map((line, i) => <p key={i}>{line}</p>)
+                        event.description.split('\n').map((line, i) => <p key={i}>{decodeHTMLEntities(line)}</p>)
                     ) : (
                         <p>No description available.</p>
                     )}
@@ -905,7 +907,7 @@ console.log("- Can edit event:", isEventCreator || isClubLeaderForEvent);
                     <>
                         <div className="event-page-date"><strong>Date</strong>: {event.date}</div>
                         <div className="event-page-time"><strong>Time</strong>: {event.time}</div>
-                        <div className="event-page-location"><strong>Location</strong>: {event.location}</div>
+                        <div className="event-page-location"><strong>Location</strong>: {decodeHTMLEntities(event.location)}</div>
                     </>
                 )}
             </div>
@@ -1019,7 +1021,7 @@ console.log("- Can edit event:", isEventCreator || isClubLeaderForEvent);
                                                         </div>
                                                         <div className="participants-person-info">
                                                             <div className="participants-person-name">
-                                                                {participant.student?.full_name || 'Unknown'}
+                                                                {decodeHTMLEntities(participant.student?.full_name || 'Unknown')}
                                                             </div>
                                                             <div className="participants-person-id">
                                                                 {participant.student?.studentid || 'No ID'} •{' '}

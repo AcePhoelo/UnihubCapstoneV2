@@ -10,6 +10,7 @@ import instagram from '../../assets/instagram.png';
 import youtube from '../../assets/youtube.png';
 import linkedin from '../../assets/linkedin.png';
 import { motion } from 'framer-motion';
+import { decodeHTMLEntities } from '../../utils';
 
 const MyActivity = () => {
     const navigate = useNavigate();
@@ -57,7 +58,7 @@ const MyActivity = () => {
     
             if (!profile || !profile.studentid) {
                 try {
-                    const response = await fetch('http://127.0.0.1:8000/profile/profile/', {
+                    const response = await fetch('http://54.169.81.75:8000/profile/profile/', {
                         method: 'GET',
                         headers: {
                             'Authorization': `Bearer ${token}`,
@@ -81,12 +82,12 @@ const MyActivity = () => {
                 }
             }
     
-            setStudentName(profile.full_name || "Unknown Student");
+            setStudentName(decodeHTMLEntities(profile.full_name || "Unknown Student"));
             setStudentID(profile.studentid || "Unknown ID");
 
             const profilePicUrl = profile.profile_picture || '';
             setProfilePicture(profilePicUrl.startsWith('http') ? profilePicUrl : 
-            profilePicUrl ? `http://127.0.0.1:8000${profilePicUrl}` : '');
+            profilePicUrl ? `http://54.169.81.75:8000${profilePicUrl}` : '');
         };
     
         fetchProfileIfNeeded();
@@ -106,7 +107,7 @@ const MyActivity = () => {
             // Fetch profile if it's missing or incomplete
             if (!profile || !profile.studentid) {
                 try {
-                    const response = await fetch('http://127.0.0.1:8000/profile/profile/', {
+                    const response = await fetch('http://54.169.81.75:8000/profile/profile/', {
                         method: 'GET',
                         headers: {
                             'Authorization': `Bearer ${token}`,
@@ -134,12 +135,12 @@ const MyActivity = () => {
             setStudentID(profile.studentid || "Unknown ID");
             const profilePicUrl = profile.profile_picture || '';
             setProfilePicture(profilePicUrl.startsWith('http') ? profilePicUrl : 
-            profilePicUrl ? `http://127.0.0.1:8000${profilePicUrl}` : '');
+            profilePicUrl ? `http://54.169.81.75:8000${profilePicUrl}` : '');
     
             // Fetch user activity
             const fetchUserActivity = async () => {
                 try {
-                    const clubsResponse = await fetch(`http://127.0.0.1:8000/profile/students/${profile.studentid}`, {
+                    const clubsResponse = await fetch(`http://54.169.81.75:8000/profile/students/${profile.studentid}`, {
                         headers: {
                             'Authorization': `Bearer ${token}`,
                             'Content-Type': 'application/json',
@@ -150,7 +151,7 @@ const MyActivity = () => {
                         // Handle token refresh
                         const refreshToken = localStorage.getItem('refresh_token');
                         if (refreshToken) {
-                            const refreshResponse = await fetch('http://127.0.0.1:8000/api/token/refresh/', {
+                            const refreshResponse = await fetch('http://54.169.81.75:8000/api/token/refresh/', {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
@@ -163,7 +164,7 @@ const MyActivity = () => {
                                 localStorage.setItem('access_token', tokenData.access);
     
                                 // Retry the original request with the new token
-                                const newResponse = await fetch(`http://127.0.0.1:8000/profile/students/${profile.studentid}`, {
+                                const newResponse = await fetch(`http://54.169.81.75:8000/profile/students/${profile.studentid}`, {
                                     headers: {
                                         'Authorization': `Bearer ${tokenData.access}`,
                                         'Content-Type': 'application/json',
@@ -211,13 +212,13 @@ const MyActivity = () => {
                 const leaderClubs = Array.isArray(userData.leadership_clubs)
                     ? userData.leadership_clubs.map(club => ({
                         id: club.id || "",
-                        name: club.name || "Unknown Club",
-                        description: club.description || "Club Leader",
+                        name: decodeHTMLEntities(club.name || "Unknown Club"),
+                        description: decodeHTMLEntities(club.description || "Club Leader"),
                         // Add complete URLs with domain
-                        logo: club.logo ? `http://127.0.0.1:8000${club.logo}` : null,
-                        banner: club.banner ? `http://127.0.0.1:8000${club.banner}` : null,
-                        imageUrl: club.banner ? `http://127.0.0.1:8000${club.banner}` : null,
-                        logoUrl: club.logo ? `http://127.0.0.1:8000${club.logo}` : null
+                        logo: club.logo ? `http://54.169.81.75:8000${club.logo}` : null,
+                        banner: club.banner ? `http://54.169.81.75:8000${club.banner}` : null,
+                        imageUrl: club.banner ? `http://54.169.81.75:8000${club.banner}` : null,
+                        logoUrl: club.logo ? `http://54.169.81.75:8000${club.logo}` : null
                     }))
                     : [];
                 
@@ -230,10 +231,10 @@ const MyActivity = () => {
                         .filter(club => !leadershipClubIds.includes(club.id)) // Filter out duplicates
                         .map(club => ({
                             id: club.id || "",
-                            name: club.name || "Unknown Club", 
-                            description: club.description || "",
-                            imageUrl: club.banner ? `http://127.0.0.1:8000${club.banner}` : null,
-                            logoUrl: club.logo ? `http://127.0.0.1:8000${club.logo}` : null,
+                            name: decodeHTMLEntities(club.name || "Unknown Club"), 
+                            description: decodeHTMLEntities(club.description || ""),
+                            imageUrl: club.banner ? `http://54.169.81.75:8000${club.banner}` : null,
+                            logoUrl: club.logo ? `http://54.169.81.75:8000${club.logo}` : null,
                         }))
                     : [];
 
@@ -259,7 +260,7 @@ const MyActivity = () => {
                 
                 // Step 1: Use the existing EventRegistrationListView endpoint with user_id parameter
                 const registrationsResponse = await fetch(
-                    `http://127.0.0.1:8000/api/event/event_registration/?user_id=${profile.studentid}`, 
+                    `http://54.169.81.75:8000/api/event/event_registration/?user_id=${profile.studentid}`, 
                     {
                         headers: {
                             'Authorization': `Bearer ${token}`,
@@ -284,16 +285,16 @@ const MyActivity = () => {
 
                         let imageUrl = event.banner || null;
                     if (imageUrl && !imageUrl.startsWith('http')) {
-                        imageUrl = `http://127.0.0.1:8000${imageUrl}`;
+                        imageUrl = `http://54.169.81.75:8000${imageUrl}`;
                     }
                         return {
                             id: event.id,
-                            name: event.name,
-                            description: event.description || 'No description',
+                            name: decodeHTMLEntities(event.name),
+                            description: decodeHTMLEntities(event.description || 'No description'),
                             imageUrl: imageUrl || null,
                             date: event.date || 'TBA',
                             time: event.time || 'TBA',
-                            place: event.location || 'TBA',
+                            place: decodeHTMLEntities(event.location || 'TBA'),
                             club: event.club_details || null,
                             // Add color information for hover effects if available
                             hoverColor: event.shadow_color ? 
@@ -326,7 +327,8 @@ const MyActivity = () => {
     const handleCalendarClick = () => navigate('/calendar');
 
     const getInitials = (fullName) => {
-        const names = fullName.trim().split(' ');
+        const decodedName = decodeHTMLEntities(fullName || '');
+        const names = decodedName.trim().split(' ');
         const initials = names[0]?.charAt(0).toUpperCase() + (names[1]?.charAt(0).toUpperCase() || '');
         return initials;
     };
@@ -426,8 +428,8 @@ const MyActivity = () => {
                                                     e.target.src = '/default-club-banner.png'; 
                                                 }}
                                             />
-                                            <div className="activity-club-card-name">{club.name}</div>
-                                            <div className="activity-club-card-description">{club.description}</div>
+                                            <div className="activity-club-card-name">{decodeHTMLEntities(club.name)}</div>
+                                            <div className="activity-club-card-description">{decodeHTMLEntities(club.description)}</div>
                                         </motion.div>
                                     </motion.div>
                                 ))}
@@ -511,11 +513,11 @@ const MyActivity = () => {
                                             onError={e => { e.target.onerror = null; e.target.src = '/default-event-banner.png' }}
                                         />
                                         <div className="activity-event-card-content">
-                                            <div className="activity-event-card-name">{evt.name}</div>
-                                            <div className="activity-event-card-description">{evt.description}</div>
+                                            <div className="activity-event-card-name">{decodeHTMLEntities(evt.name)}</div>
+                                            <div className="activity-event-card-description">{decodeHTMLEntities(evt.description)}</div>
                                             <div className="activity-spacer" />
                                             <div className="activity-event-card-meta">
-                                                Date: {evt.date} | Time: {evt.time} | Place: {evt.place}
+                                                Date: {evt.date} | Time: {evt.time} | Place: {decodeHTMLEntities(evt.place)}
                                             </div>
                                         </div>
                                     </motion.div>
@@ -565,7 +567,7 @@ const MyActivity = () => {
                                 </div>
                             )}
                         </div>
-                        <div className="profile-name">{studentName || "User's full name"}</div>
+                        <div className="profile-name">{decodeHTMLEntities(studentName) || "User's full name"}</div>
                         <div className="profile-student-id">Student ID: {studentID || "User's student ID"}</div>
                         
                         <div className="profile-divider"></div>

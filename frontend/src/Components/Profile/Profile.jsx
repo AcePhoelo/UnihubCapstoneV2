@@ -6,7 +6,6 @@ import logo from '../../assets/logo.png';
 import calendar from '../../assets/calendar.png';
 import { useCurrentUser } from '../../hooks/useCurrentUser';
 import { motion } from 'framer-motion';
-
 const Profile = () => {
     const navigate = useNavigate();
     const location = useLocation();
@@ -42,7 +41,7 @@ const Profile = () => {
         
         setCurrentUserName(currentUserData.full_name || currentUserData.name || '');
         setCurrentUserProfilePic(profilePicUrl.startsWith('http') ? profilePicUrl : 
-                                profilePicUrl ? `http://127.0.0.1:8000${profilePicUrl}` : '');
+                                profilePicUrl ? `http://54.169.81.75:8000${profilePicUrl}` : '');
     }, []);
 
         
@@ -62,8 +61,8 @@ const Profile = () => {
                     
                     // Choose the appropriate endpoint
                     const endpoint = isViewingOwnProfile
-                        ? 'http://127.0.0.1:8000/profile/profile/' 
-                        : `http://127.0.0.1:8000/profile/students/${requestedStudentId}/`;
+                        ? 'http://54.169.81.75:8000/profile/profile/' 
+                        : `http://54.169.81.75:8000/profile/students/${requestedStudentId}/`;
     
                     console.log(`Fetching profile from: ${endpoint}`, 
                         isViewingOwnProfile ? '(own profile)' : `(student ID: ${requestedStudentId})`);
@@ -88,14 +87,14 @@ const Profile = () => {
                         // Handle profile picture with absolute URL check
                         const profilePicUrl = data.profile_picture || '';
                         setProfilePicture(profilePicUrl.startsWith('http') ? profilePicUrl : 
-                                         profilePicUrl ? `http://127.0.0.1:8000${profilePicUrl}` : '');
+                                         profilePicUrl ? `http://54.169.81.75:8000${profilePicUrl}` : '');
                         
                         // Process club data to ensure logos have complete URLs
                         const processClubImages = (clubs) => {
                             return clubs.map(club => ({
                                 ...club,
                                 logo: club.logo ? (club.logo.startsWith('http') ? club.logo : 
-                                      `http://127.0.0.1:8000${club.logo}`) : ''
+                                      `http://54.169.81.75:8000${club.logo}`) : ''
                             }));
                         };
                         
@@ -187,7 +186,7 @@ const Profile = () => {
             formData.append('profile_picture', file);
             
             const accessToken = localStorage.getItem('access_token');
-            const response = await fetch('http://127.0.0.1:8000/profile/update-picture/', {
+            const response = await fetch('http://54.169.81.75:8000/profile/update-picture/', {
                 method: 'PUT',
                 headers: {
                     'Authorization': `Bearer ${accessToken}`,

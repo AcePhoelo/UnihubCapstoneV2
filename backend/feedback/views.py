@@ -5,7 +5,13 @@ from rest_framework.filters import OrderingFilter
 from .models import Feedback
 from .serializers import FeedbackSerializer
 from user_profile.models import Student
+from api.utils import clean_input
 
+# feedback/views.py
+from django.core.validators import MinLengthValidator, MaxLengthValidator
+from rest_framework import serializers
+
+    
 class FeedbackPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = 'page_size'
@@ -22,9 +28,18 @@ class FeedbackListCreateView(ListCreateAPIView):
 
     def get_queryset(self):
         queryset = Feedback.objects.all()
+        
+        # Get and sanitize query parameters
         event_id = self.request.query_params.get('event_id')
         event_name = self.request.query_params.get('event_name')
         user_id = self.request.query_params.get('user_id')
+        
+        if event_id:
+            event_id = clean_input(event_id)
+        if event_name:
+            event_name = clean_input(event_name)
+        if user_id:
+            user_id = clean_input(user_id)
         
         if event_id:
             queryset = queryset.filter(event_id=event_id)
@@ -34,12 +49,11 @@ class FeedbackListCreateView(ListCreateAPIView):
             queryset = queryset.filter(user_id=user_id)
         
         return queryset
-
+    
     def perform_create(self, serializer):
         # Get the student associated with the current user
         try:
             student = Student.objects.get(user=self.request.user)
             serializer.save(student=student)
         except Student.DoesNotExist:
-            # Fallback if no student profile exists
             serializer.save()

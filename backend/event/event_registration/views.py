@@ -7,6 +7,7 @@ from django.db.models import Q
 from .models import EventRegistration
 from .serializers import EventRegistrationSerializer
 from event.add_event.models import Event
+from api.utils import clean_input
 
 class EventRegistrationPagination(PageNumberPagination):
     page_size = 10

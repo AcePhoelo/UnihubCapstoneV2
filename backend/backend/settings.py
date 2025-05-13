@@ -39,23 +39,28 @@ CORS_ALLOWED_ORIGINS = [
 ]
 ALLOWED_HOSTS = [
     "localhost",  # Frontend
-    "127.0.0.1",  # Backend
+    "127.0.0.1",  # Backend (change to 54.169.81.75:8000)
+    "54.169.81.75",
 ]
 
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework_simplejwt.authentication.JWTAuthentication",
-        
     ),
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.IsAuthenticated",
     ],
-}
-
-SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
+    # Add these throttling settings
+    "DEFAULT_THROTTLE_CLASSES": [
+        "rest_framework.throttling.AnonRateThrottle",
+        "rest_framework.throttling.UserRateThrottle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "anon": "60/minute",
+        "user": "200/minute",
+        "auth": "30/minute", 
+    }
 }
 
 
@@ -95,6 +100,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    'api.middleware.InputValidationMiddleware',
 ]
 
 ROOT_URLCONF = "backend.urls"
@@ -122,8 +128,16 @@ WSGI_APPLICATION = "backend.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": "mydatabase",
+        "ENGINE": "django.db.backends.mysql",
+        "NAME": "unihub",
+        "USER": "admin",
+        "PASSWORD": "Unihub+Capstone",  # Add password to .env file
+        "HOST": "unihub3.clggkwmcaggd.ap-southeast-1.rds.amazonaws.com",
+        "PORT": "3306",
+        "OPTIONS": {
+            # Set SQL mode to be compatible with your MariaDB dump
+            "init_command": "SET sql_mode='STRICT_TRANS_TABLES,NO_AUTO_VALUE_ON_ZERO'",
+        }
     }
 }
 
@@ -175,15 +189,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CORS_ALLOW_CREDENTIALS = True
 CSRF_COOKIE_HTTPONLY = False
 CSRF_COOKIE_SAMESITE = "Lax"
-
-# Email settings (testing)
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'adeliawanti1509@gmail.com'  
-EMAIL_HOST_PASSWORD = 'vbpl fuks auhe sbhe' 
-DEFAULT_FROM_EMAIL = 'adeliawanti1509@gmail.com'  
 
 LOGGING = {
     'version': 1,
