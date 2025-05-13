@@ -1,4 +1,4 @@
-from django.utils.html import escape  # Make sure to import this
+from django.utils.html import escape
 
 
 def clean_input(data):

@@ -11,30 +11,6 @@ from api.utils import clean_input
 from django.core.validators import MinLengthValidator, MaxLengthValidator
 from rest_framework import serializers
 
-class FeedbackSerializer(serializers.ModelSerializer):
-    name = serializers.CharField(
-        validators=[MinLengthValidator(2), MaxLengthValidator(100)]
-    )
-    role = serializers.CharField(
-        validators=[MinLengthValidator(2), MaxLengthValidator(50)]
-    )
-    experience = serializers.CharField(
-        validators=[MinLengthValidator(5), MaxLengthValidator(1000)]
-    )
-    
-    class Meta:
-        model = Feedback
-        fields = ['name', 'role', 'like', 'dislike', 'satisfaction', 'experience']
-    
-    def validate(self, data):
-        for field in ['name', 'role', 'like', 'dislike', 'experience']:
-            if field in data and isinstance(data[field], str):
-                data[field] = clean_input(data[field])
-        
-        # Add custom validation rules
-        if data.get('satisfaction') not in ['Very Satisfied', 'Satisfied', 'Neutral', 'Unsatisfied', 'Very Unsatisfied']:
-            raise serializers.ValidationError({"satisfaction": "Invalid satisfaction level"})
-        return data
     
 class FeedbackPagination(PageNumberPagination):
     page_size = 10

@@ -61,7 +61,7 @@ const ClubDirectory = () => {
         setCurrentUserName(currentUserData.full_name || currentUserData.name || '');
         setCurrentUserProfilePic(
             profilePicUrl.startsWith('http') ? profilePicUrl :
-            profilePicUrl ? `http://127.0.0.1:8000${profilePicUrl}` : ''
+            profilePicUrl ? `http://54.169.81.75:8000${profilePicUrl}` : ''
         );
 
         const fetchClubs = async () => {
@@ -75,7 +75,7 @@ const ClubDirectory = () => {
             }
 
             try {
-                const res = await fetch('http://127.0.0.1:8000/clubs/clubs/', { headers });
+                const res = await fetch('http://54.169.81.75:8000/clubs/clubs/', { headers });
 
                 if (res.status === 401 && !isGuest) {
                     throw new Error('Unauthorized');
@@ -85,7 +85,7 @@ const ClubDirectory = () => {
 
                 const enriched = await Promise.all(data.map(async club => {
                     try {
-                        const imgRes = await fetch(`http://127.0.0.1:8000${club.banner}`);
+                        const imgRes = await fetch(`http://54.169.81.75:8000${club.banner}`);
                         const blob = await imgRes.blob();
                         const url = URL.createObjectURL(blob);
                         const img = new Image();
@@ -264,7 +264,7 @@ const ClubDirectory = () => {
                         >
                             {pinnedClubs[featuredIndex].banner && (
                                 <img
-                                    src={`http://127.0.0.1:8000${pinnedClubs[featuredIndex].banner}`}
+                                    src={`http://54.169.81.75:8000${pinnedClubs[featuredIndex].banner}`}
                                     alt={pinnedClubs[featuredIndex].name}
                                     className="featured-club-image"
                                 />
@@ -301,7 +301,7 @@ const ClubDirectory = () => {
                                 <div className="club-card">
                                     {club.banner ? (
                                         <img
-                                            src={`http://127.0.0.1:8000${club.banner}`}
+                                            src={`http://54.169.81.75:8000${club.banner}`}
                                             alt={club.name}
                                             className="club-card-banner"
                                         />

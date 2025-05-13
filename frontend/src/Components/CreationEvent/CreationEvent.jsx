@@ -20,12 +20,13 @@ const CreationEvent = () => {
     const [formValid, setFormValid] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
     const fileInputRef = useRef(null);
+    const [isLoading, setIsLoading] = useState(false);
 
     const maxDescriptionLength = 1500;
 
     useEffect(() => {
         const token = localStorage.getItem('access_token');
-        fetch('http://127.0.0.1:8000/clubs/list', {
+        fetch('http://54.169.81.75:8000/clubs/list', {
             method: 'GET',
             headers: {
                 Authorization: `Bearer ${token}`,
@@ -79,7 +80,9 @@ const CreationEvent = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!formValid) return;
+        if (!formValid || isLoading) return;
+        
+        setIsLoading(true);
 
         const formData = new FormData();
         formData.append('name', eventName);
@@ -96,7 +99,7 @@ const CreationEvent = () => {
         formData.append('club', clubName);
 
         try {
-            const response = await fetch('http://127.0.0.1:8000/api/event/add_event/create/', {
+            const response = await fetch('http://54.169.81.75:8000/api/event/add_event/create/', {
                 method: 'POST',
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('access_token')}`,
@@ -114,6 +117,8 @@ const CreationEvent = () => {
         } catch (error) {
             console.error('Error creating event:', error);
             setErrorMessage('An error occurred while creating the event.');
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -209,8 +214,13 @@ const CreationEvent = () => {
                     </div>
 
                     <div className="submit-event-container">
-                        <button className="creation-event-submit" type="submit" disabled={!formValid}>
-                            Submit
+                        <button 
+                            className="creation-event-submit" 
+                            type="submit" 
+                            disabled={!formValid || isLoading}
+                            style={{ opacity: isLoading ? 0.7 : 1 }}
+                        >
+                            {isLoading ? 'Processing...' : 'Submit'}
                         </button>
                     </div>
                 </form>

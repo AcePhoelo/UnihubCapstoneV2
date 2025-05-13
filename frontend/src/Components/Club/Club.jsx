@@ -138,7 +138,7 @@ const Club = () => {
                 headers.Authorization = `Bearer ${token}`;
             }
 
-            const response = await fetch(`http://127.0.0.1:8000/clubs/clubs/${club_id}/`, {
+            const response = await fetch(`http://54.169.81.75:8000/clubs/clubs/${club_id}/`, {
                 method: 'GET',
                 headers,
             });
@@ -191,7 +191,7 @@ const Club = () => {
             if (!isGuest && token) headers.Authorization = `Bearer ${token}`;
 
             const resp = await fetch(
-                `http://127.0.0.1:8000/api/event/club_events/?club_id=${club_id}`,
+                `http://54.169.81.75:8000/api/event/club_events/?club_id=${club_id}`,
                 { headers }
             );
 
@@ -217,7 +217,7 @@ const Club = () => {
             if (!isGuest && token) headers.Authorization = `Bearer ${token}`;
 
             // First fetch members data (works for both guests and authenticated users)
-            const mResp = await fetch(`http://127.0.0.1:8000/clubs/clubs/${club_id}/members/`, { headers });
+            const mResp = await fetch(`http://54.169.81.75:8000/clubs/clubs/${club_id}/members/`, { headers });
             
             if (mResp.ok) {
                 const md = await mResp.json();
@@ -249,7 +249,7 @@ const Club = () => {
             // Try to get roles from API (will work for authenticated users)
             if (!isGuest) {
                 try {
-                    const rResp = await fetch(`http://127.0.0.1:8000/clubs/clubs/${club_id}/roles/`, { headers });
+                    const rResp = await fetch(`http://54.169.81.75:8000/clubs/clubs/${club_id}/roles/`, { headers });
                     if (rResp.ok) {
                         const rd = await rResp.json();
                         setClubRoles(rd.roles || []);
@@ -277,7 +277,7 @@ const Club = () => {
         
         setStudentName(currentUserData.full_name || currentUserData.name || '');
         setProfilePicture(profilePicUrl.startsWith('http') ? profilePicUrl : 
-                          profilePicUrl ? `http://127.0.0.1:8000${profilePicUrl}` : '');
+                          profilePicUrl ? `http://54.169.81.75:8000${profilePicUrl}` : '');
     }, [club_id]);
 
     const joinClub = async () => {
@@ -293,7 +293,7 @@ const Club = () => {
         }
         
         const token = localStorage.getItem('access_token');
-        await fetch(`http://127.0.0.1:8000/clubs/clubs/${club_id}/members/add/`, {
+        await fetch(`http://54.169.81.75:8000/clubs/clubs/${club_id}/members/add/`, {
             method: 'POST',
             headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -310,7 +310,7 @@ const Club = () => {
             try {
                 // Get fresh member data with original structure - don't transform it!
                 const token = localStorage.getItem('access_token');
-                const response = await fetch(`http://127.0.0.1:8000/clubs/clubs/${club_id}/members/`, {
+                const response = await fetch(`http://54.169.81.75:8000/clubs/clubs/${club_id}/members/`, {
                     headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }
                 });
     
@@ -346,7 +346,7 @@ const Club = () => {
         } else {
             // Normal leave process for non-presidents
             const token = localStorage.getItem('access_token');
-            await fetch(`http://127.0.0.1:8000/clubs/clubs/${club_id}/members/${JSON.parse(localStorage.getItem('profile')).studentid}/remove/`, {
+            await fetch(`http://54.169.81.75:8000/clubs/clubs/${club_id}/members/${JSON.parse(localStorage.getItem('profile')).studentid}/remove/`, {
                 method: 'DELETE',
                 headers: { Authorization: `Bearer ${token}` }
             });
@@ -374,7 +374,7 @@ const Club = () => {
                 throw new Error("Could not determine new president ID");
             }
             
-            const response = await fetch(`http://127.0.0.1:8000/clubs/clubs/${club_id}/transfer_leadership/`, {
+            const response = await fetch(`http://54.169.81.75:8000/clubs/clubs/${club_id}/transfer_leadership/`, {
                 method: 'POST',
                 headers: { 
                     Authorization: `Bearer ${token}`,
@@ -448,7 +448,7 @@ const Club = () => {
     const updateClubDescription = async () => {
         try {
             const token = localStorage.getItem('access_token');
-            const resp = await fetch(`http://127.0.0.1:8000/clubs/clubs/${club_id}/update/`, {
+            const resp = await fetch(`http://54.169.81.75:8000/clubs/clubs/${club_id}/update/`, {
                 method: 'PUT',
                 headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify({ description: descriptionText })
@@ -482,7 +482,7 @@ const Club = () => {
         form.append('description', descriptionText);
         if (newLogo) form.append('logo', newLogo);
         if (newBanner) form.append('banner', newBanner);
-        const resp = await fetch(`http://127.0.0.1:8000/clubs/clubs/${club_id}/update/`, {
+        const resp = await fetch(`http://54.169.81.75:8000/clubs/clubs/${club_id}/update/`, {
             method: 'PUT',
             headers: { Authorization: `Bearer ${token}` },
             body: form
@@ -517,7 +517,7 @@ const Club = () => {
         if (!confirmed) return;
         
         const token = localStorage.getItem('access_token');
-        const resp = await fetch(`http://127.0.0.1:8000/clubs/clubs/${club_id}/delete/`, {
+        const resp = await fetch(`http://54.169.81.75:8000/clubs/clubs/${club_id}/delete/`, {
             method: 'DELETE',
             headers: { Authorization: `Bearer ${token}` }
         });
@@ -909,11 +909,11 @@ const Club = () => {
                                                 .map(role => (
                                                     <MemberCategorySection
                                                         key={role.id}
-                                                        title={role.name}
+                                                        title={decodeHTMLEntities(role.name)}
                                                         members={members.filter(
                                                             m =>
-                                                                m.position === role.name ||
-                                                                m.custom_position === role.name
+                                                                decodeHTMLEntities(m.position) === decodeHTMLEntities(role.name) ||
+                                                                decodeHTMLEntities(m.custom_position) === decodeHTMLEntities(role.name)
                                                         )}
                                                         searchQuery={searchQuery}
                                                         getInitials={getInitials}
@@ -950,6 +950,7 @@ const Club = () => {
                     isOpen={collabSidebarOpen}
                     onClose={() => setCollabSidebarOpen(false)}
                     presidentEmail={presidentEmail}
+                    currentClubName={club.name} 
                 />
                 <input
                     type="file"

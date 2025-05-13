@@ -32,7 +32,7 @@ const ManageRoles = () => {
         }
     
         try {
-            const response = await fetch('http://127.0.0.1:8000/api/token/refresh/', {
+            const response = await fetch('http://54.169.81.75:8000/api/token/refresh/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ refresh: refreshToken }),
@@ -73,7 +73,7 @@ const ManageRoles = () => {
         if (!headers) return;
 
         try {
-            const response = await fetch(`http://127.0.0.1:8000/clubs/clubs/${club_id}/members/`, { headers });
+            const response = await fetch(`http://54.169.81.75:8000/clubs/clubs/${club_id}/members/`, { headers });
             if (!response.ok) {
                 throw new Error('Failed to fetch club members');
             }
@@ -97,7 +97,7 @@ const ManageRoles = () => {
         if (!headers) return;
 
         try {
-            const response = await fetch(`http://127.0.0.1:8000/clubs/clubs/${club_id}/roles/`, { headers });
+            const response = await fetch(`http://54.169.81.75:8000/clubs/clubs/${club_id}/roles/`, { headers });
             if (!response.ok) {
                 throw new Error('Failed to fetch club roles');
             }
@@ -137,7 +137,7 @@ const ManageRoles = () => {
             if (!headers) return;
         
             try {
-                const response = await fetch(`http://127.0.0.1:8000/clubs/clubs/${club_id}/roles/position_choices/`, {
+                const response = await fetch(`http://54.169.81.75:8000/clubs/clubs/${club_id}/roles/position_choices/`, {
                     headers,
                 });
         
@@ -200,7 +200,7 @@ const ManageRoles = () => {
                 return;
             }
     
-            const response = await fetch(`http://127.0.0.1:8000/clubs/clubs/${club_id}/roles/add/`, {
+            const response = await fetch(`http://54.169.81.75:8000/clubs/clubs/${club_id}/roles/add/`, {
                 method: 'POST',
                 headers,
                 body: JSON.stringify({
@@ -234,7 +234,7 @@ const ManageRoles = () => {
         if (!headers) return;
     
         try {
-            const response = await fetch(`http://127.0.0.1:8000/clubs/clubs/${club_id}/roles/add/`, {
+            const response = await fetch(`http://54.169.81.75:8000/clubs/clubs/${club_id}/roles/add/`, {
                 method: 'POST',
                 headers,
                 body: JSON.stringify({
@@ -268,7 +268,7 @@ const ManageRoles = () => {
         if (!headers) return;
     
         try {
-            const response = await fetch(`http://127.0.0.1:8000/clubs/clubs/${club_id}/roles/${roleId}/update/`, {
+            const response = await fetch(`http://54.169.81.75:8000/clubs/clubs/${club_id}/roles/${roleId}/update/`, {
                 method: 'PUT',
                 headers,
                 body: JSON.stringify({
@@ -312,9 +312,9 @@ const ManageRoles = () => {
             
             if (isCustomRole) {
                 const numericId = roleId.replace('custom_', '');
-                url = `http://127.0.0.1:8000/clubs/clubs/${club_id}/roles/${numericId}/delete/`;
+                url = `http://54.169.81.75:8000/clubs/clubs/${club_id}/roles/${numericId}/delete/`;
             } else {
-                url = `http://127.0.0.1:8000/clubs/clubs/${club_id}/roles/${roleId}/delete/`;
+                url = `http://54.169.81.75:8000/clubs/clubs/${club_id}/roles/${roleId}/delete/`;
             }
     
             console.log(`Sending DELETE request to: ${url}`);

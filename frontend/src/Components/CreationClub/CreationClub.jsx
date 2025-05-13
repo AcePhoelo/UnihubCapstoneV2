@@ -17,6 +17,7 @@ const CreationClub = () => {
     const [errorMessage, setErrorMessage] = useState('');
     const maxDescriptionLength = 1500;
     const { success: success2, error: error2 } = useNotification();
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleIconChange = (e) => {
         const file = e.target.files[0];
@@ -45,8 +46,25 @@ const CreationClub = () => {
         const membersValid = members.every((id) => id.trim() !== '' && /^\d{8}$/.test(id));
         setFormValid(clubInfoValid && membersValid);
     }, [clubName, description, members]);
+        
+    const resetForm = () => {
+        setClubName('');
+        setDescription('');
+        setMembers(Array(10).fill(''));
+        setBannerPreview(null);
+        setIconPreview(null);
+        setErrorMessage('');
+        // Reset file inputs
+        if (document.getElementById('icon-upload')) {
+            document.getElementById('icon-upload').value = '';
+        }
+        if (document.getElementById('banner-upload')) {
+            document.getElementById('banner-upload').value = '';
+        }
+    };
 
     const handleSubmit = async () => {
+        setIsLoading(true);
         const formData = new FormData();
         formData.append('name', clubName);
         formData.append('description', description);
@@ -61,7 +79,8 @@ const CreationClub = () => {
         });
 
         try {
-            const response = await fetch('http://127.0.0.1:8000/clubs/clubs/create/', {
+            // Fix the URL to match the endpoint shown in the logs
+            const response = await fetch('http://54.169.81.75:8000/clubs/clubs/create/', {
                 method: 'POST',
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('access_token')}`,
@@ -72,16 +91,20 @@ const CreationClub = () => {
             if (response.ok) {
                 const data = await response.json();
                 success2('Club created successfully!');
-                // Use React Router navigation instead of window.location
                 navigate(`/club/${data.club.id}`);
             } else {
                 const errorData = await response.json();
-                // Decode HTML entities in error message
-                setErrorMessage(decodeHTMLEntities(errorData.error || 'Failed to create club'));
+                error2(decodeHTMLEntities(errorData.error || 'Failed to create club. Please try again.'));
+                // Reset the form when an error occurs
+                resetForm();
             }
         } catch (error) {
             console.error('Error creating club:', error);
-            setErrorMessage('An error occurred while creating the club.');
+            error2('An error occurred while creating the club. Please try again.');
+            // Reset the form when an error occurs
+            resetForm();
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -251,12 +274,12 @@ const CreationClub = () => {
                     )}
 
                     <button
-                        className={`creation-submit ${formValid ? '' : 'disabled'
-                            }`}
-                        disabled={!formValid}
-                        onClick={handleSubmit}
+                        className={`creation-submit ${formValid && !isLoading ? '' : 'disabled'}`}
+                        disabled={!formValid || isLoading}
+                        onClick={formValid && !isLoading ? handleSubmit : undefined}
+                        style={{ opacity: isLoading ? 0.7 : 1 }}
                     >
-                        Submit
+                        {isLoading ? 'Processing...' : 'Submit'}
                     </button>
                 </div>
             </div>

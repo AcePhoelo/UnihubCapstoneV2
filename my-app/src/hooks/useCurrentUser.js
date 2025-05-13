@@ -18,7 +18,7 @@ export const useCurrentUser = () => {
           return;
         }
 
-        const response = await fetch('http://127.0.0.1:8000/api/verify-user/', {
+        const response = await fetch('http://54.169.81.75:8000/api/verify-user/', {
           headers: {
             'Authorization': `Bearer ${token}`
           }

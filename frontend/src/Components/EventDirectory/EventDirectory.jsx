@@ -45,7 +45,7 @@ const EventDirectory = () => {
         
         setCurrentUserName(currentUserData.full_name || currentUserData.name || '');
         setCurrentUserProfilePic(profilePicUrl.startsWith('http') ? profilePicUrl : 
-                                profilePicUrl ? `http://127.0.0.1:8000${profilePicUrl}` : '');
+                                profilePicUrl ? `http://54.169.81.75:8000${profilePicUrl}` : '');
     }, []);
 
     useEffect(() => {
@@ -55,7 +55,7 @@ const EventDirectory = () => {
                 const headers = { 'Content-Type': 'application/json' };
                 if (!isGuest && token) headers.Authorization = `Bearer ${token}`;
 
-                const resp = await fetch('http://127.0.0.1:8000/api/event/add_event/', {
+                const resp = await fetch('http://54.169.81.75:8000/api/event/add_event/', {
                     headers,
                 });
 

@@ -15,7 +15,7 @@ import { decodeHTMLEntities } from '../../utils';
 
 const Feedback = () => {
     const navigate = useNavigate();
-    const { success: success2, error: error2 } = useNotification();
+    const { success: success2, error: error2, confirm } = useNotification();
     const { eventName } = useParams();
     const decodedEventName = decodeURIComponent(eventName || '');
     const [event, setEvent] = useState(null);
@@ -40,7 +40,7 @@ const Feedback = () => {
         const fetchEvent = async () => {
             try {
                 const token = localStorage.getItem('access_token');
-                const response = await fetch(`http://127.0.0.1:8000/api/event/add_event/`, {
+                const response = await fetch(`http://54.169.81.75:8000/api/event/add_event/`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -182,7 +182,7 @@ const Feedback = () => {
 
         try {
             const token = localStorage.getItem('access_token');
-            const response = await fetch('http://127.0.0.1:8000/api/feedback/feedback/', {
+            const response = await fetch('http://54.169.81.75:8000/api/feedback/feedback/', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -214,20 +214,37 @@ const Feedback = () => {
                     }
                 }, 500);
             } else {
-                // This part handles HTTP error responses
-                try {
-                    const errorData = await response.json();
-                    const errorMessage = typeof errorData === 'object' 
-                        ? Object.entries(errorData).map(([field, errors]) => `${field}: ${decodeHTMLEntities(errors)}`).join(', ')
-                        : decodeHTMLEntities(errorData.detail || 'Failed to submit feedback.');
-                    setError(errorMessage);
-                    error2(errorMessage);
-                } catch (jsonError) {
-                    // Handle case where response isn't valid JSON
-                    setError('Server returned an invalid response');
-                    error2('Server returned an invalid response');
+                    try {
+                        const errorData = await response.json();
+                        const errorMessage = typeof errorData === 'object' 
+                            ? Object.entries(errorData).map(([field, errors]) => `${field}: ${decodeHTMLEntities(errors)}`).join(', ')
+                            : decodeHTMLEntities(errorData.detail || 'Failed to submit feedback.');
+                        setError(errorMessage);
+                        error2(errorMessage);
+                        
+                        // Automatically navigate back to event page after displaying error
+                        setTimeout(() => {
+                            if (event && event.name) {
+                                navigate(`/event/${encodeURIComponent(event.name)}`);
+                            } else {
+                                navigate('/dashboard');
+                            }
+                        }, 2000); // 2 seconds delay to ensure the user sees the error message
+                    } catch (jsonError) {
+                        // Handle case where response isn't valid JSON
+                        setError('Server returned an invalid response');
+                        error2('Server returned an invalid response');
+                        
+                        // Also redirect on JSON parsing errors
+                        setTimeout(() => {
+                            if (event && event.name) {
+                                navigate(`/event/${encodeURIComponent(event.name)}`);
+                            } else {
+                                navigate('/dashboard');
+                            }
+                        }, 2000);
+                    }
                 }
-            }
         } catch (err) {
             console.error('Error submitting feedback:', err);
             const errorMessage = 'An error occurred while submitting feedback.';
